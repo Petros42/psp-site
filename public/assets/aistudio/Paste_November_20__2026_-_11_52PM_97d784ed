@@ -1,0 +1,1882 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PSP — Process · Stage · Praxis</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    /* ==========================================================================
+       FROZEN FRONT-PAGE & DESIGN TOKENS (DO NOT MODIFY)
+       ========================================================================== */
+    :root {
+      --bg-page: #F2E6DA;
+      --bg-bar: #E5D6C6;
+      --text-main: #0D0C0B;
+      --text-muted: rgba(13, 12, 11, 0.72);
+      --border-hairline: rgba(13, 12, 11, 0.14);
+      --border-card: #161514;
+      --accent-gold: #F9A602;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      min-height: 100%;
+      width: 100%;
+      background-color: var(--bg-page);
+      color: var(--text-main);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      overflow-x: hidden;
+    }
+
+    body {
+      display: flex;
+      justify-content: center;
+    }
+
+    /* ==========================================================================
+       SITE SHELL & TOP/BOTTOM BARS
+       ========================================================================== */
+    .site-shell {
+      width: 100%;
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      background-color: var(--bg-page);
+    }
+
+    /* Optional simulated screen-size & zoom wrapper (inactive by default) */
+    body.sim-active {
+      background-color: #DCD0C3;
+      padding: 16px 0 84px;
+      align-items: flex-start;
+      overflow-x: auto;
+    }
+
+    body.sim-active .site-shell {
+      border: 1px solid rgba(13, 12, 11, 0.22);
+      border-radius: 22px;
+      overflow: hidden;
+      box-shadow: 0 12px 36px rgba(13, 12, 11, 0.14);
+      transform-origin: top center;
+      flex-shrink: 0;
+    }
+
+    .sim-toolbar {
+      display: none;
+      position: fixed;
+      bottom: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 70;
+      background: rgba(242, 230, 218, 0.97);
+      border: 1px solid rgba(13, 12, 11, 0.28);
+      border-radius: 16px;
+      padding: 8px 12px;
+      box-shadow: 0 8px 28px rgba(13, 12, 11, 0.22);
+      flex-direction: column;
+      gap: 6px;
+      max-width: 96vw;
+    }
+
+    body.sim-toolbar-open .sim-toolbar {
+      display: flex;
+    }
+
+    .sim-toolbar-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+
+    .sim-toolbar-tag {
+      font-size: 10.5px;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+      margin-right: 2px;
+    }
+
+    .sim-close-chip {
+      background: #0D0C0B;
+      color: #F2E6DA;
+      border: none;
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-family: 'Inter', sans-serif;
+      font-size: 11px;
+      cursor: pointer;
+      margin-left: 4px;
+    }
+
+    body.sim-active .site-shell {
+      border: 1px solid rgba(13, 12, 11, 0.22);
+      border-radius: 22px;
+      overflow: hidden;
+      box-shadow: 0 12px 36px rgba(13, 12, 11, 0.14);
+      transform-origin: top center;
+    }
+
+    .sim-exit-bar {
+      display: none;
+      position: fixed;
+      bottom: 14px;
+      right: 14px;
+      z-index: 70;
+      background: #0D0C0B;
+      color: #F2E6DA;
+      border: none;
+      border-radius: 999px;
+      padding: 7px 14px;
+      font-family: 'Inter', sans-serif;
+      font-size: 11.5px;
+      letter-spacing: 0.03em;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(13, 12, 11, 0.25);
+    }
+
+    body.sim-active .sim-exit-bar {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .top-bar {
+      width: 100%;
+      height: 50px;
+      padding: 0 18px;
+      background-color: var(--bg-bar);
+      border-bottom: 1px solid var(--border-hairline);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 20;
+    }
+
+    .nav-trigger {
+      background: transparent;
+      border: none;
+      color: var(--text-main);
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      font-weight: 400;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      padding: 8px 4px;
+      transition: opacity 0.2s ease;
+    }
+
+    .nav-trigger:hover {
+      opacity: 0.65;
+    }
+
+    .hamburger-lines {
+      display: inline-flex;
+      flex-direction: column;
+      gap: 3.5px;
+      width: 16px;
+    }
+
+    .hamburger-lines span {
+      display: block;
+      width: 100%;
+      height: 1.25px;
+      background-color: var(--text-main);
+      border-radius: 1px;
+    }
+
+    .lang-switcher {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12.5px;
+      letter-spacing: 0.06em;
+      color: var(--text-main);
+    }
+
+    .lang-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-family: 'Inter', sans-serif;
+      font-size: 12.5px;
+      font-weight: 400;
+      letter-spacing: 0.06em;
+      cursor: pointer;
+      padding: 6px 3px;
+      transition: color 0.2s ease, font-weight 0.2s ease;
+    }
+
+    .lang-btn.active {
+      color: var(--text-main);
+      font-weight: 500;
+      text-decoration: underline;
+      text-underline-offset: 4px;
+      text-decoration-thickness: 1px;
+    }
+
+    .lang-sep {
+      color: rgba(13, 12, 11, 0.35);
+      user-select: none;
+      font-size: 11px;
+    }
+
+    /* ==========================================================================
+       FROZEN FRONT-PAGE HERO & 5.45s SEQUENTIAL LOGO ANIMATION
+       ========================================================================== */
+    .front-stage {
+      flex: 1;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px 14px 24px;
+      gap: 22px;
+    }
+
+    .front-stage.hidden {
+      display: none;
+    }
+
+    .logo-card-wrap {
+      width: 100%;
+      max-width: 390px;
+      aspect-ratio: 3 / 2;
+      border-radius: 18px;
+      border: 1.25px solid var(--border-card);
+      overflow: hidden;
+      position: relative;
+      background: radial-gradient(circle at 50% 48%, #F6ECE4 0%, #EDE0D5 100%);
+      box-shadow: 0 2px 10px rgba(13, 12, 11, 0.04);
+      cursor: pointer;
+    }
+
+    @media (min-width: 768px) {
+      .logo-card-wrap {
+        max-width: 460px;
+      }
+      .front-stage {
+        gap: 28px;
+        padding: 32px 24px 36px;
+      }
+    }
+
+    .logo-svg {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Exact 5.45s sequential non-looping fade-in */
+    @keyframes pspFadeIn {
+      0% { opacity: 0; }
+      100% { opacity: 1; }
+    }
+
+    @keyframes pspLightSweep {
+      0% {
+        transform: translateX(-1150px);
+        opacity: 0;
+      }
+      18% {
+        opacity: 0.72;
+      }
+      82% {
+        opacity: 0.72;
+      }
+      100% {
+        transform: translateX(1150px);
+        opacity: 0;
+      }
+    }
+
+    .anim-black-crescent {
+      opacity: 0;
+      animation: pspFadeIn 1.75s cubic-bezier(0.22, 1, 0.36, 1) 0s forwards;
+    }
+
+    .anim-gold-crescent {
+      opacity: 0;
+      animation: pspFadeIn 1.30s cubic-bezier(0.22, 1, 0.36, 1) 1.75s forwards;
+    }
+
+    .anim-psp-letters {
+      opacity: 0;
+      animation: pspFadeIn 1.30s cubic-bezier(0.22, 1, 0.36, 1) 3.05s forwards;
+    }
+
+    .anim-light-sweep {
+      opacity: 0;
+      animation: pspLightSweep 1.10s ease-in-out 4.35s forwards;
+      pointer-events: none;
+    }
+
+    /* Three-line conceptual intro */
+    .hero-lines {
+      width: 100%;
+      text-align: center;
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 14.5px;
+      font-weight: 500;
+      line-height: 1.56;
+      letter-spacing: 0.005em;
+      color: #0D0C0B;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    @media (min-width: 768px) {
+      .hero-lines {
+        font-size: 19px;
+        line-height: 1.55;
+      }
+    }
+
+    .hero-lines span {
+      display: block;
+      white-space: nowrap;
+    }
+
+    /* Hidden by default unless activated for an active programme */
+    .programmes-slot {
+      display: none;
+      margin-top: 6px;
+    }
+
+    .programmes-slot.visible {
+      display: inline-flex;
+    }
+
+    .programmes-pill {
+      background: rgba(229, 214, 198, 0.72);
+      border: 1px solid rgba(13, 12, 11, 0.22);
+      color: var(--text-main);
+      border-radius: 999px;
+      padding: 8px 18px;
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+
+    .programmes-pill:hover {
+      background: var(--bg-bar);
+    }
+
+    /* ==========================================================================
+       CATEGORY READER VIEW (INNER PAGES)
+       ========================================================================== */
+    .category-reader {
+      display: none;
+      flex: 1;
+      width: 100%;
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 28px 20px 52px;
+    }
+
+    .category-reader.active {
+      display: block;
+    }
+
+    .reader-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding-bottom: 16px;
+      margin-bottom: 24px;
+      border-bottom: 1px solid var(--border-hairline);
+    }
+
+    .back-front-btn {
+      background: transparent;
+      border: 1px solid rgba(13, 12, 11, 0.24);
+      color: var(--text-main);
+      border-radius: 999px;
+      padding: 6px 14px;
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      letter-spacing: 0.03em;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+
+    .back-front-btn:hover {
+      background: var(--bg-bar);
+    }
+
+    .reader-progress {
+      font-size: 11.5px;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+    }
+
+    .reader-category-title {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 27px;
+      font-weight: 600;
+      line-height: 1.25;
+      color: var(--text-main);
+      margin-bottom: 26px;
+    }
+
+    @media (min-width: 768px) {
+      .reader-category-title {
+        font-size: 32px;
+      }
+    }
+
+    .passage-block {
+      margin-bottom: 28px;
+      padding-bottom: 22px;
+      border-bottom: 1px solid rgba(13, 12, 11, 0.08);
+    }
+
+    .passage-block:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    .passage-heading {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 20px;
+      font-weight: 600;
+      line-height: 1.35;
+      color: var(--text-main);
+      margin-bottom: 10px;
+    }
+
+    .passage-paragraph {
+      font-family: 'Inter', sans-serif;
+      font-size: 14.5px;
+      font-weight: 400;
+      line-height: 1.72;
+      color: var(--text-main);
+      margin-bottom: 12px;
+    }
+
+    .passage-paragraph:last-child {
+      margin-bottom: 0;
+    }
+
+    .passage-list {
+      margin: 10px 0 14px 20px;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+
+    .passage-list li {
+      font-family: 'Inter', sans-serif;
+      font-size: 14.5px;
+      font-weight: 400;
+      line-height: 1.68;
+      color: var(--text-main);
+    }
+
+    .passage-subgroup {
+      margin: 14px 0 14px 12px;
+      padding-left: 12px;
+      border-left: 1.5px solid rgba(13, 12, 11, 0.18);
+    }
+
+    .passage-subgroup-title {
+      font-family: 'Inter', sans-serif;
+      font-size: 14.5px;
+      font-weight: 500;
+      line-height: 1.65;
+      color: var(--text-main);
+      margin-bottom: 6px;
+    }
+
+    /* ==========================================================================
+       BOTTOM BAR
+       ========================================================================== */
+    .bottom-bar {
+      width: 100%;
+      height: 50px;
+      padding: 0 18px;
+      background-color: var(--bg-bar);
+      border-top: 1px solid var(--border-hairline);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 20;
+    }
+
+    .footer-pill {
+      background: transparent;
+      border: 1px solid rgba(13, 12, 11, 0.25);
+      color: var(--text-main);
+      border-radius: 999px;
+      padding: 5px 13px;
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+
+    .footer-pill:hover {
+      background: rgba(13, 12, 11, 0.06);
+    }
+
+    .social-links {
+      display: inline-flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .social-link {
+      color: var(--text-main);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      transition: opacity 0.2s ease;
+    }
+
+    .social-link:hover {
+      opacity: 0.65;
+    }
+
+    .footer-link {
+      background: transparent;
+      border: none;
+      color: var(--text-main);
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      padding: 6px 4px;
+      transition: opacity 0.2s ease;
+    }
+
+    .footer-link:hover {
+      opacity: 0.65;
+    }
+
+    /* ==========================================================================
+       CLOSED-BY-DEFAULT NAVIGATION DRAWER & MODALS
+       ========================================================================== */
+    .backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(13, 12, 11, 0.34);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+      z-index: 40;
+    }
+
+    .backdrop.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .nav-drawer {
+      position: fixed;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      width: min(330px, 86vw);
+      background-color: var(--bg-page);
+      border-right: 1px solid var(--border-hairline);
+      transform: translateX(-100%);
+      transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+      z-index: 50;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 20px 20px 24px;
+      overflow-y: auto;
+    }
+
+    .nav-drawer.open {
+      transform: translateX(0);
+    }
+
+    .drawer-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--border-hairline);
+      margin-bottom: 14px;
+    }
+
+    .drawer-brand {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+    }
+
+    .close-btn {
+      background: transparent;
+      border: 1px solid rgba(13, 12, 11, 0.2);
+      color: var(--text-main);
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      font-size: 16px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .nav-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .nav-item-btn {
+      width: 100%;
+      text-align: left;
+      background: transparent;
+      border: none;
+      border-radius: 10px;
+      padding: 10px 12px;
+      color: var(--text-main);
+      font-family: 'Inter', sans-serif;
+      font-size: 13.5px;
+      line-height: 1.4;
+      cursor: pointer;
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 8px;
+      transition: background 0.18s ease;
+    }
+
+    .nav-item-btn:hover,
+    .nav-item-btn.active {
+      background: var(--bg-bar);
+    }
+
+    .nav-item-note {
+      font-size: 11px;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+
+    .drawer-footer {
+      padding-top: 16px;
+      border-top: 1px solid var(--border-hairline);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .drawer-sub-btn {
+      background: var(--bg-bar);
+      border: 1px solid rgba(13, 12, 11, 0.18);
+      color: var(--text-main);
+      border-radius: 10px;
+      padding: 9px 12px;
+      font-family: 'Inter', sans-serif;
+      font-size: 12.5px;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .sim-controls-box {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding-top: 4px;
+    }
+
+    .sim-controls-label {
+      font-size: 11px;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+    }
+
+    .sim-pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+
+    .sim-chip {
+      background: transparent;
+      border: 1px solid rgba(13, 12, 11, 0.22);
+      color: var(--text-main);
+      border-radius: 999px;
+      padding: 4px 9px;
+      font-family: 'Inter', sans-serif;
+      font-size: 11px;
+      cursor: pointer;
+      transition: background 0.18s ease, color 0.18s ease;
+    }
+
+    .sim-chip.active {
+      background: var(--text-main);
+      color: var(--bg-page);
+      border-color: var(--text-main);
+    }
+
+    .modal-card {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.96);
+      width: min(440px, 90vw);
+      max-height: 82vh;
+      overflow-y: auto;
+      background: var(--bg-page);
+      border: 1px solid rgba(13, 12, 11, 0.22);
+      border-radius: 18px;
+      padding: 22px 22px 24px;
+      box-shadow: 0 18px 48px rgba(13, 12, 11, 0.22);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.22s ease, transform 0.22s ease;
+      z-index: 60;
+    }
+
+    .modal-card.open {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translate(-50%, -50%) scale(1);
+    }
+
+    .modal-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border-hairline);
+    }
+
+    .modal-title {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 22px;
+      font-weight: 600;
+    }
+
+    .modal-body {
+      font-size: 13.5px;
+      line-height: 1.65;
+      color: var(--text-main);
+    }
+
+    .contact-email-box {
+      margin-top: 14px;
+      padding: 10px 12px;
+      background: var(--bg-bar);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      font-size: 13px;
+    }
+
+    .copy-btn {
+      background: var(--text-main);
+      color: var(--bg-page);
+      border: none;
+      border-radius: 999px;
+      padding: 5px 12px;
+      font-size: 11.5px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="site-shell">
+    <!-- Top Navigation Bar -->
+    <header class="top-bar">
+      <button type="button" class="nav-trigger" id="menuBtn" aria-label="Open menu">
+        <span class="hamburger-lines" aria-hidden="true">
+          <span></span>
+          <span></span>
+          <span></span>
+        </span>
+        <span id="menuLabel">menu</span>
+      </button>
+
+      <nav class="lang-switcher" aria-label="Language selector">
+        <button type="button" class="lang-btn" data-lang="el">ΕΛ</button>
+        <span class="lang-sep">|</span>
+        <button type="button" class="lang-btn active" data-lang="en">EN</button>
+        <span class="lang-sep">|</span>
+        <button type="button" class="lang-btn" data-lang="ru">RU</button>
+      </nav>
+    </header>
+
+    <!-- Frozen Front-Page Stage -->
+    <main class="front-stage" id="frontStage">
+      <div class="logo-card-wrap">
+        <svg class="logo-svg" viewBox="0 0 960 640" width="960" height="640" role="img" aria-label="PSP — Process Stage Praxis Logo">
+          <defs>
+            <!-- Soft radial blush-terracotta card surface -->
+            <radialGradient id="cardWarmGlow" cx="50%" cy="48%" r="58%">
+              <stop offset="0%" stop-color="#F6ECE4" />
+              <stop offset="100%" stop-color="#EDE0D5" />
+            </radialGradient>
+
+            <!-- Dual-layer sculptural 3D shadow for matte-black crescent -->
+            <filter id="blackCrescentShadow" x="-30%" y="-30%" width="170%" height="175%">
+              <feDropShadow dx="-8" dy="16" stdDeviation="16" flood-color="#161514" flood-opacity="0.46" />
+              <feDropShadow dx="-14" dy="26" stdDeviation="26" flood-color="#161514" flood-opacity="0.22" />
+            </filter>
+
+            <!-- Larger, deeper sculptural 3D shadow for gold crescent -->
+            <filter id="goldCrescentShadow" x="-35%" y="-35%" width="180%" height="185%">
+              <feDropShadow dx="-11" dy="21" stdDeviation="20" flood-color="#1A120B" flood-opacity="0.52" />
+              <feDropShadow dx="-18" dy="32" stdDeviation="32" flood-color="#1A120B" flood-opacity="0.26" />
+            </filter>
+
+            <!-- Subtle sculptural rim shading for black crescent -->
+            <linearGradient id="blackCrescentGrad" x1="15%" y1="15%" x2="85%" y2="85%">
+              <stop offset="0%" stop-color="#262422" />
+              <stop offset="55%" stop-color="#161514" />
+              <stop offset="100%" stop-color="#0B0A09" />
+            </linearGradient>
+
+            <!-- Flat warm golden-yellow with subtle dimensional lower rim -->
+            <linearGradient id="goldCrescentGrad" x1="20%" y1="12%" x2="82%" y2="88%">
+              <stop offset="0%" stop-color="#FFB319" />
+              <stop offset="60%" stop-color="#F9A602" />
+              <stop offset="100%" stop-color="#E29200" />
+            </linearGradient>
+
+            <!-- Single diagonal white light sweep -->
+            <linearGradient id="sweepGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0" />
+              <stop offset="50%" stop-color="#FFFFFF" stop-opacity="0.65" />
+              <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0" />
+            </linearGradient>
+          </defs>
+
+          <!-- Card Ground -->
+          <rect x="0" y="0" width="960" height="640" fill="url(#cardWarmGlow)" />
+
+          <!-- 1. Left Matte-Black Crescent (0.00s - 1.75s) -->
+          <g class="anim-black-crescent">
+            <path filter="url(#blackCrescentShadow)" d="M 605 112 C 390 100, 178 216, 175 360 C 173 458, 294 504, 480 426 C 345 452, 268 412, 270 336 C 272 232, 418 145, 605 112 Z" fill="url(#blackCrescentGrad)" />
+          </g>
+
+          <!-- 2. Right Gold Crescent with Larger 3D Shadow (1.75s - 3.05s) -->
+          <g class="anim-gold-crescent">
+            <path filter="url(#goldCrescentShadow)" d="M 315 524 C 542 542, 774 422, 778 274 C 780 172, 650 124, 456 206 C 598 178, 678 220, 676 298 C 674 404, 514 492, 315 524 Z" fill="url(#goldCrescentGrad)" />
+          </g>
+
+          <!-- 3. Pure Solid Matte-Black PSP Lettering (3.05s - 4.35s, zero shadow) -->
+          <g class="anim-psp-letters">
+            <text x="478" y="346" text-anchor="middle" fill="#161514" font-family="'Inter', -apple-system, BlinkMacSystemFont, sans-serif" font-size="82" font-weight="500" letter-spacing="18">PSP</text>
+          </g>
+
+          <!-- 4. Single Diagonal White Light Sweep (4.35s - 5.45s) -->
+          <g class="anim-light-sweep">
+            <polygon points="-140,-80 120,-80 -120,720 -380,720" fill="url(#sweepGrad)" />
+          </g>
+        </svg>
+      </div>
+
+      <!-- Verbatim Trilingual Three-Line Intro -->
+      <div class="hero-lines" id="heroLines" aria-live="polite">
+        <span>An approach to experiencing — to interact,</span>
+        <span>act, and become through movement,</span>
+        <span>embodied presence, and improvisation.</span>
+      </div>
+
+      <!-- Hidden-by-default Upcoming Programmes Slot -->
+      <div class="programmes-slot" id="programmesSlot">
+        <button type="button" class="programmes-pill" id="programmesBtn">Upcoming Programmes &amp; Activities</button>
+      </div>
+    </main>
+
+    <!-- Category Reader View (Inner Pages) -->
+    <section class="category-reader" id="categoryReader" aria-live="polite">
+      <div class="reader-topbar">
+        <button type="button" class="back-front-btn" id="backFrontBtn">← Front Page</button>
+        <span class="reader-progress" id="readerProgress"></span>
+      </div>
+      <h1 class="reader-category-title" id="readerTitle"></h1>
+      <div id="readerPassages"></div>
+    </section>
+
+    <!-- Bottom Bar -->
+    <footer class="bottom-bar">
+      <button type="button" class="footer-pill" id="contactBtn">contact</button>
+
+      <div class="social-links" aria-label="Social channels">
+        <a href="https://www.youtube.com" target="_blank" rel="noopener noreferrer" class="social-link" aria-label="YouTube">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="5" width="20" height="14" rx="4" />
+            <polygon points="10 9 15 12 10 15 10 9" fill="currentColor" stroke="none" />
+          </svg>
+        </a>
+        <a href="https://www.instagram.com" target="_blank" rel="noopener noreferrer" class="social-link" aria-label="Instagram">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="2" width="20" height="20" rx="5" />
+            <circle cx="12" cy="12" r="4" />
+            <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none" />
+          </svg>
+        </a>
+        <a href="https://www.facebook.com" target="_blank" rel="noopener noreferrer" class="social-link" aria-label="Facebook">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
+          </svg>
+        </a>
+      </div>
+
+      <button type="button" class="footer-link" id="privacyBtn">privacy</button>
+    </footer>
+  </div>
+
+  <!-- Backdrop -->
+  <div class="backdrop" id="backdrop"></div>
+
+  <!-- Navigation Drawer (Closed by Default) -->
+  <aside class="nav-drawer" id="navDrawer" aria-hidden="true">
+    <div>
+      <div class="drawer-header">
+        <span class="drawer-brand">PSP</span>
+        <button type="button" class="close-btn" id="closeDrawerBtn" aria-label="Close menu">×</button>
+      </div>
+      <button type="button" class="drawer-sub-btn" id="openSimToolbarBtn" style="width: 100%; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between;">
+        <span>Screen &amp; Zoom Toolbar</span>
+        <span style="font-size: 11px; opacity: 0.7;">390 · A56 · 768 · %</span>
+      </button>
+      <ul class="nav-list" id="navList"></ul>
+    </div>
+
+    <div class="drawer-footer">
+      <button type="button" class="drawer-sub-btn" id="drawerContactBtn">Contact</button>
+      <button type="button" class="drawer-sub-btn" id="toggleProgrammesBtn">Toggle Upcoming Programmes Slot</button>
+    </div>
+  </aside>
+
+  <!-- Info / Contact / Privacy Modal (Closed by Default) -->
+  <div class="modal-card" id="infoModal" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="modal-top">
+      <h2 class="modal-title" id="modalTitle"></h2>
+      <button type="button" class="close-btn" id="closeModalBtn" aria-label="Close modal">×</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+
+  <!-- Floating Screen & Zoom Toolbar (Hidden by default; opened from menu) -->
+  <div class="sim-toolbar" id="simToolbar" role="region" aria-label="Screen and zoom controls">
+    <div class="sim-toolbar-row">
+      <span class="sim-toolbar-tag">Screen:</span>
+      <button type="button" class="sim-chip active" data-sim-width="full">Full</button>
+      <button type="button" class="sim-chip" data-sim-width="390">390px</button>
+      <button type="button" class="sim-chip" data-sim-width="412">A56 (412)</button>
+      <button type="button" class="sim-chip" data-sim-width="768">Tablet (768)</button>
+      <button type="button" class="sim-chip" data-sim-width="1200">Desktop (1200)</button>
+    </div>
+    <div class="sim-toolbar-row">
+      <span class="sim-toolbar-tag">Zoom:</span>
+      <button type="button" class="sim-chip active" data-sim-zoom="1">100%</button>
+      <button type="button" class="sim-chip" data-sim-zoom="0.85">85%</button>
+      <button type="button" class="sim-chip" data-sim-zoom="0.75">75%</button>
+      <button type="button" class="sim-chip" data-sim-zoom="0.6">60%</button>
+      <button type="button" class="sim-chip" data-sim-zoom="0.5">50%</button>
+      <button type="button" class="sim-close-chip" id="simExitBtn">Reset &amp; Hide</button>
+    </div>
+  </div>
+
+  <script>
+    const content = {
+      en: {
+        menuLabel: "menu",
+        backFront: "← Front Page",
+        contactLabel: "contact",
+        privacyLabel: "privacy",
+        lines: [
+          "An approach to experiencing — to interact,",
+          "act, and become through movement,",
+          "embodied presence, and improvisation."
+        ],
+        programmes: "Upcoming Programmes & Activities",
+        programmesTitle: "Upcoming Programmes & Activities",
+        programmesBody: "New experiential workshops, training cycles, and open encounters in Process–Stage–Praxis will be announced here.",
+        drawerContact: "Contact",
+        toggleProgrammes: "Toggle Upcoming Programmes Slot",
+        contactHeading: "Contact PSP",
+        contactText: "For inquiries regarding workshops, seminars, individual sessions, or international collaborations:",
+        copyLabel: "Copy",
+        copiedLabel: "Copied",
+        privacyTitle: "Privacy & Data Protection",
+        privacyBody: "PSP respects your privacy. This website does not use invasive tracking cookies or sell personal data. Any information shared via direct email correspondence is used solely to respond to your inquiry.",
+        categories: {
+          nature: {
+            title: "1. The Nature of PSP",
+            progress: "1.1 – 1.6",
+            passages: [
+              {
+                heading: "1.1 What PSP is",
+                paragraphs: [
+                  "PSP (Process–Stage–Praxis) is an evolving approach to embodied presence, interaction, and creative improvisation, developed by Petros Theodorou since 2010. Rooted in experiential practice and a phenomenological understanding of human experiencing, it offers a flexible framework for deepening awareness — sensing and perceiving, at multiple levels, what is happening as experience unfolds."
+                ]
+              },
+              {
+                heading: "1.2. From bodily awareness to relational awareness",
+                paragraphs: [
+                  "Through movement, improvisation, and embodied interaction, PSP supports the development of bodily awareness into a richer relational awareness — being present not simply to what happens within ourselves, but to how we participate in the situations we inhabit."
+                ]
+              },
+              {
+                heading: "1.3. PSP as a complementary tool — and what it is not",
+                paragraphs: [
+                  "PSP does not substitute for professional training or the practitioner's own repertoire of skills and resources; rather, it offers an additional, flexible framework to support and enhance process work (working with the continuous unfolding of lived experience), both in individual and group settings. Accordingly, PSP is used as a complementary tool and adjunctive skill in a wide range of fields.",
+                  "PSP is not a standalone therapeutic or artistic system, nor is it a form of drama, dance, or art therapy, Playback Theatre, or theatre training. Instead, it offers additional possibilities for enriching and refining embodied and overall awareness of how things happen in our experience and interactions."
+                ]
+              },
+              {
+                heading: "1.4. The Interconnecting Nature of PSP",
+                paragraphs: [
+                  "PSP brings together embodied presence, improvisation, creative imagination, and interaction within an open, existentially oriented experiential framework. Its particular character lies not in these elements themselves, but in the ways they are interconnected, creating conditions in which new possibilities of awareness, expression, and relational experience may emerge."
+                ]
+              },
+              {
+                heading: "1.5. PSP and body-Oriented Approaches: A particular orientation",
+                paragraphs: [
+                  "PSP shares with many embodied and experiential approaches an interest in bodily awareness, movement, and the relational dimensions of human experience. Its particular orientation, however, is not primarily towards exploring movement itself or observing ourselves bodily from within, but towards being embodied in a situation — sensing, acting, and interacting within an unfolding experiential process.",
+                  "Through its flexible practical framework, PSP brings together movement, posture, imagination, bodily awareness, and interaction, deliberately creating conditions in which new experiential possibilities may emerge."
+                ]
+              },
+              {
+                heading: "1.6. PSP and Developmental/Relational Approaches to Embodied Movement",
+                paragraphs: [
+                  "A shared interest in bodily awareness, kinaesthetic processes, and the relational dimensions of experience provides common ground between PSP and these approaches. What distinguishes PSP is the particular way it organises these elements within its experiential methodology, not the elements themselves. In this way, PSP offers additional possibilities for embodied and experiential work that complement and enrich existing approaches and professional skills, without replacing them."
+                ]
+              }
+            ]
+          },
+          letters: {
+            title: "2. What the Letters PSP Stand For",
+            progress: "Process · Stage · Praxis",
+            passages: [
+              {
+                heading: "Process (P)",
+                paragraphs: [
+                  "Process (P) refers to the continuous unfolding of experience — an ongoing movement of change and reorganisation. Each emerging moment grows out of what precedes it, yet brings something new. In this sense, experiencing is inherently improvisational: it unfolds without following a predetermined script."
+                ]
+              },
+              {
+                heading: "Stage (S)",
+                paragraphs: [
+                  "Stage (S) refers to the dynamically co-created intersubjective field of interaction in which we encounter others, act, and participate. It is not simply a physical space or environment, nor does it refer to a theatrical stage."
+                ]
+              },
+              {
+                heading: "Praxis (P)",
+                paragraphs: [
+                  "Praxis (P) refers to our embodied, active, and responsive participation in this field through spontaneous action and improvisational interaction. It can also be understood as a dynamic bridge between Process and Stage, through which experiencing takes shape in action and interaction.",
+                  "In PSP, Praxis also expresses the living integration of its theoretical understanding and practical methodology.",
+                  "The term carries a philosophical reference to Aristotle's concept of praxis, emphasising action as an essential dimension of human existence and of the ways we participate in shaping our lived reality."
+                ]
+              },
+              {
+                heading: "Three Threads, One Unfolding Experience",
+                paragraphs: [
+                  "Process, Stage, and Praxis are not three independent components or successive steps, but three inseparable, interrelated perspectives on the same unfolding experience."
+                ]
+              }
+            ]
+          },
+          foundations: {
+            title: "3. Conceptual and theoretical foundations",
+            progress: "3.1 – 3.4",
+            passages: [
+              {
+                heading: "3.1. PSP's Philosophical and Theoretical Orientation",
+                paragraphs: [
+                  "PSP is grounded in existential, phenomenological, relational, and humanistic perspectives, with particular attention to New Phenomenology and the primacy of immediate, embodied experience.",
+                  "Its theoretical orientation, developed extensively in Book A “Reflections on the Miracle of Human Experiencing”, includes:"
+                ],
+                bullets: [
+                  "a layered model of awareness and consciousness,",
+                  "the interplay of conscious and nonconscious processes, and",
+                  "the microstructure of experiencing — how experience emerges, unfolds, and continuously reorganises."
+                ]
+              },
+              {
+                heading: "3.2. PSP's Influences and Sources of Inspiration",
+                paragraphs: [
+                  "PSP also draws on contemporary neuroscience, including embodied and mirroring processes, and selected foundational ideas from modern physics concerning interaction, self-organisation, and the dynamic nature of reality. Further influences come from the philosophical foundations of Gestalt therapy and from improvisational practices, including Playback Theatre — without making PSP a branch of Gestalt therapy or a form of theatrical or artistic training."
+                ]
+              },
+              {
+                heading: "3.3. PSP's Integrative Character",
+                paragraphs: [
+                  "PSP selectively integrates these different sources into its own perspective on embodied experiencing, awareness, and interaction. Its originality lies not necessarily in the individual theoretical ideas upon which it draws, but in the way it brings them together into a distinctive experiential methodology. This is consistent with its identity as a complementary resource rather than a separate psychotherapy system."
+                ]
+              },
+              {
+                heading: "3.4. PSP's Original Experiential Architecture",
+                paragraphs: [
+                  "The following concepts and framework were developed specifically for PSP and form the backbone of its experiential methodology:"
+                ],
+                subgroups: [
+                  {
+                    title: "(a) Three forms of experiential organisation — ways in which our ongoing experience takes shape:",
+                    bullets: [
+                      "Personal Film — A symbolic form of mental imagery through which lived experience unfolds as a kind of an inner film.",
+                      "Somatic Intention — A bodily impulse or leaning towards action, even before action takes place.",
+                      "Body Image — The image or representation we have of our own body as we experience it."
+                    ]
+                  },
+                  {
+                    title: "(b) An action-based principle:",
+                    paragraphs: [
+                      "The Kinetic Motif — A minimal unit of embodied action (movement or sound) that can be repeated and varied."
+                    ]
+                  },
+                  {
+                    title: "(c) A flexible compositional framework:",
+                    paragraphs: [
+                      "1000+1 Exercises for Embodied Improvised Interaction — An open framework for creating and adapting experiential exercises rather than following fixed techniques."
+                    ]
+                  }
+                ],
+                closingParagraphs: [
+                  "These original concepts and their interrelations are developed extensively in Book C “Pathways into the Dynamics of Lived Experience”."
+                ]
+              }
+            ]
+          }
+        },
+        nav: [
+          { title: "Front Page", action: "front" },
+          { title: "1. The Nature of PSP", action: "category", categoryId: "nature", note: "1.1–1.6" },
+          { title: "2. What the Letters PSP Stand For", action: "category", categoryId: "letters", note: "P · S · P" },
+          { title: "3. Conceptual and theoretical foundations", action: "category", categoryId: "foundations", note: "3.1–3.4" },
+          { title: "Fields of Application", note: "Ready for text" },
+          { title: "Founder & Lineage", note: "Ready for text" },
+          { title: "Publications & Resources", note: "Ready for text" }
+        ]
+      },
+      el: {
+        menuLabel: "μενού",
+        backFront: "← Αρχική Σελίδα",
+        contactLabel: "επικοινωνία",
+        privacyLabel: "απόρρητο",
+        lines: [
+          "Προσεγγίζοντας το συνεχές της εμπειρίας — δράση,",
+          "αλληλεπίδραση, το αδιάκοπο γίγνεσθαι μέσα από",
+          "την κίνηση, την ενσώματη παρουσία, τον αυτοσχεδιασμό."
+        ],
+        programmes: "Επερχόμενα Προγράμματα & Δραστηριότητες",
+        programmesTitle: "Επερχόμενα Προγράμματα & Δραστηριότητες",
+        programmesBody: "Νέα βιωματικά εργαστήρια, κύκλοι εκπαίδευσης και ανοιχτές συναντήσεις στην PSP θα ανακοινώνονται εδώ.",
+        drawerContact: "Επικοινωνία",
+        toggleProgrammes: "Εμφάνιση/Απόκρυψη Προγραμμάτων",
+        contactHeading: "Επικοινωνία με την PSP",
+        contactText: "Για πληροφορίες σχετικά με εργαστήρια, σεμινάρια, ατομικές συνεδρίες ή συνεργασίες:",
+        copyLabel: "Αντιγραφή",
+        copiedLabel: "Αντιγράφηκε",
+        privacyTitle: "Απόρρητο & Προστασία Δεδομένων",
+        privacyBody: "Η PSP σέβεται το απόρρητό σας. Ο ιστότοπος αυτός δεν χρησιμοποιεί παρεμβατικά cookies παρακολούθησης ούτε διαβιβάζει προσωπικά δεδομένα.",
+        categories: {
+          nature: {
+            title: "1. Η φύση της PSP",
+            progress: "1.1 – 1.6",
+            passages: [
+              {
+                heading: "1.1 Τι είναι η PSP",
+                paragraphs: [
+                  "Η PSP (Process–Stage–Praxis) είναι μια διαρκώς αναπτυσσόμενη προσέγγιση στην ενσώματη παρουσία, την αλληλεπίδραση και τον αυτοσχεδιασμό, την οποία θεμελίωσε ο Πέτρος Θεοδώρου το 2010. Με ρίζες στη βιωματική πρακτική και στη φαινομενολογική κατανόηση της ανθρώπινης εμπειρίας, συνιστά ένα ευέλικτο πλαίσιο για τον εμπλουτισμό της επίγνωσης — τη δυνατότητα να αισθανόμαστε και να αντιλαμβανόμαστε, σε πολλαπλά επίπεδα, όσα συμβαίνουν κατά την αδιάκοπη ροή της εμπειρίας μας."
+                ]
+              },
+              {
+                heading: "1.2. Από τη σωματική επίγνωση στη σχεσιακή επίγνωση",
+                paragraphs: [
+                  "Μέσα από την κίνηση, τον αυτοσχεδιασμό και την ενσώματη αλληλεπίδραση, η PSP υποστηρίζει την ανάπτυξη της σωματικής επίγνωσης σε μια πλουσιότερη σχεσιακή επίγνωση — το να είμαστε παρόντες όχι απλώς σε όσα συμβαίνουν μέσα μας, αλλά και στον τρόπο με τον οποίο συμμετέχουμε στις καταστάσεις που βιώνουμε."
+                ]
+              },
+              {
+                heading: "1.3. Η PSP ως συμπληρωματικό εργαλείο / Τι δεν είναι η PSP",
+                paragraphs: [
+                  "Η PSP δεν υποκαθιστά την επαγγελματική εκπαίδευση, ούτε τις δεξιότητες και τους πόρους που ήδη διαθέτει ένας επαγγελματίας. Συνιστά ένα ευέλικτο πλαίσιο που υποστηρίζει και ενισχύει διαφορετικές μορφές δουλειάς με τη ροή της άμεσης, ζωντανής εμπειρίας (με τη «διαδικασία»), τόσο σε ατομικό όσο και σε ομαδικό επίπεδο. Έτσι, η PSP μπορεί να αξιοποιείται ως συμπληρωματικό εργαλείο και επιπρόσθετη επαγγελματική δεξιότητα σε ένα ευρύ φάσμα πεδίων.",
+                  "Η PSP δεν αποτελεί αυτόνομο θεραπευτικό ή καλλιτεχνικό σύστημα, ούτε κάποια μορφή δραματοθεραπείας, χοροθεραπείας, εικαστικής θεραπείας, Playback Theatre ή θεατρικής εκπαίδευσης. Αντίθετα, προσφέρει επιπλέον δυνατότητες για τον εμπλουτισμό και την ανάπτυξη της ενσώματης —και συνολικής— επίγνωσης του “πώς” συμβαίνουν τα πράγματα στις αλληλεπιδράσεις και τα βιώματά μας."
+                ]
+              },
+              {
+                heading: "1.4. Η συνδετική φύση της PSP",
+                paragraphs: [
+                  "Η PSP φέρνει κοντά την ενσώματη παρουσία, τον αυτοσχεδιασμό, τη δημιουργική φαντασία και την αλληλεπίδραση, μέσα σε ένα ανοιχτό, υπαρξιακά προσανατολισμένο βιωματικό πλαίσιο. Ο ιδιαίτερος χαρακτήρας της δεν έγκειται στα ίδια αυτά τα στοιχεία, αλλά στους τρόπους με τους οποίους διασυνδέονται μεταξύ τους, δημιουργώντας συνθήκες όπου μπορούν να αναδυθούν νέες δυνατότητες επίγνωσης, έκφρασης και σχεσιακής εμπειρίας."
+                ]
+              },
+              {
+                heading: "1.5. Η PSP και οι σωματικές προσεγγίσεις: Ένας ιδιαίτερος προσανατολισμός",
+                paragraphs: [
+                  "Η PSP μοιράζεται με πολλές σωματικές και βιωματικές προσεγγίσεις την εστίαση στη σωματική επίγνωση, την κίνηση και τις σχεσιακές διαστάσεις της ανθρώπινης εμπειρίας. Ο ιδιαίτερος προσανατολισμός της, ωστόσο, δεν στρέφεται πρωτίστως στη διερεύνηση της ίδιας της κίνησης ή στην παρατήρηση του σώματος εκ των έσω. Στρέφεται κυρίως στο να είμαστε ενσώματα παρόντες μέσα σε κάποια κατάσταση — δρώντας και αλληλεπιδρώντας, εντός ενός εξελισσόμενου βιώματος.",
+                  "Μέσα από το ευέλικτο πρακτικό της πλαίσιο, η PSP συσχετίζει την κίνηση, τη στάση του σώματος, τη φαντασία, τη σωματική επίγνωση και την αλληλεπίδραση, δημιουργώντας συνειδητά τις συνθήκες στις οποίες μπορούν να αναδυθούν νέες βιωματικές δυνατότητες."
+                ]
+              },
+              {
+                heading: "1.6. Η PSP και οι αναπτυξιακές/σχεσιακές προσεγγίσεις στην ενσώματη κίνηση",
+                paragraphs: [
+                  "Το παράλληλο ενδιαφέρον για τη σωματική επίγνωση, τις κιναισθητικές διεργασίες και τις σχεσιακές διαστάσεις της εμπειρίας αποτελεί κοινό έδαφος ανάμεσα στην PSP και σε αυτές τις προσεγγίσεις. Αυτό που διακρίνει την PSP είναι ο ιδιαίτερος τρόπος με τον οποίο οργανώνει αυτά τα στοιχεία μέσα στη βιωματική της μεθοδολογία, και όχι τα ίδια τα στοιχεία καθαυτά. Με αυτόν τον τρόπο, η PSP προσφέρει επιπλέον δυνατότητες για ενσώματη και βιωματική δουλειά, οι οποίες συμπληρώνουν και εμπλουτίζουν τις υπάρχουσες προσεγγίσεις και επαγγελματικές δεξιότητες, χωρίς να τις υποκαθιστούν."
+                ]
+              }
+            ]
+          },
+          letters: {
+            title: "2. Τι σημαίνουν τα αρχικά PSP",
+            progress: "Διαδικασία · Πεδίο · Πράξη",
+            passages: [
+              {
+                heading: "Διαδικασία / Process (P)",
+                paragraphs: [
+                  "Αναφέρεται στο συνεχές ξεδίπλωμα της εμπειρίας — σε μια αδιάκοπη κίνηση αλλαγής και αναδιοργάνωσης. Η κάθε στιγμή που αναδύεται πηγάζει από ό,τι προηγήθηκε — φέρνοντας ωστόσο μαζί της και κάτι νέο. Με αυτή την έννοια, το “βιώνειν” (η διαδικασία της εμπειρίας) είναι εγγενώς αυτοσχεδιαστικό: εκτυλίσσεται χωρίς να ακολουθεί ένα προκαθορισμένο σενάριο και προκύπτει από ό,τι συνέβη αμέσως πριν."
+                ]
+              },
+              {
+                heading: "Πεδίο / Stage (S)",
+                paragraphs: [
+                  "Αναφέρεται στο δυναμικά συν-δημιουργούμενο διυποκειμενικό πεδίο των αλληλεπιδράσεων που συμβαίνουν κατά τις συναντήσεις μας. Είναι σ’ αυτό το πεδίο που συναντιόμαστε με τους άλλους, δρούμε και συμμετέχουμε. Δεν αποτελεί απλώς έναν φυσικό χώρο ή περιβάλλον, ούτε αναφέρεται σε μια θεατρική σκηνή."
+                ]
+              },
+              {
+                heading: "Πράξη / Praxis (P)",
+                paragraphs: [
+                  "Αναφέρεται στην ενσώματη και ενεργητική συμμετοχή μας σε αυτό το πεδίο καθώς αποκρινόμαστε στα γεγονότα του, μέσα από την αυθόρμητη δράση και την αυτοσχεδιαστική αλληλεπίδραση. Μπορεί επίσης να γίνει κατανοητή ως μια δυναμική γεφύρωση της “Διαδικασίας” (Process) και του “Πεδίου” (Stage), καθώς σχηματίζεται το βίωμα δρώντας και αλληλεπιδρώντας.",
+                  "Επίσης, η “Πράξη” εκφράζει τη σύνθεση της θεωρίας και της μεθοδολογίας της PSP.",
+                  "Ο όρος φέρει και μία φιλοσοφική αναφορά στην αριστοτελική έννοια της “πράξης” (praxis), αναδεικνύοντας τη δράση ως θεμελιώδη διάσταση τόσο της ανθρώπινης ύπαρξης όσο και των τρόπων με τους οποίους συμμετέχουμε στη διαμόρφωση της πραγματικότητάς μας."
+                ]
+              },
+              {
+                heading: "Τρεις κατευθύνσεις, μία εξελισσόμενη εμπειρία",
+                paragraphs: [
+                  "Η Διαδικασία (Process), το Πεδίο (Stage) και η Πράξη (Praxis) δεν είναι τρία ανεξάρτητα συστατικά στοιχεία ούτε διαδοχικά βήματα, αλλά τρεις αδιαχώριστες, αλληλένδετες οπτικές της ίδιας εξελισσόμενης εμπειρίας."
+                ]
+              }
+            ]
+          },
+          foundations: {
+            title: "3. Εννοιολογικά και θεωρητικά θεμέλια",
+            progress: "3.1 – 3.4",
+            passages: [
+              {
+                heading: "3.1. Ο φιλοσοφικός και θεωρητικός προσανατολισμός της PSP",
+                paragraphs: [
+                  "Η PSP εδράζεται σε υπαρξιακές, φαινομενολογικές, σχεσιακές και ανθρωπιστικές προσεγγίσεις, με ιδιαίτερη εστίαση στη Νέα Φαινομενολογία (New Phenomenology) και στην πρωτοκαθεδρία της άμεσης, ενσώματης εμπειρίας.",
+                  "Ο θεωρητικός της προσανατολισμός, ο οποίος αναπτύσσεται εκτενώς στο Βιβλίο Α “Reflections on the Miracle of Human Experiencing”, περιλαμβάνει:"
+                ],
+                bullets: [
+                  "ένα πολυεπίπεδο μοντέλο για τη σχέση επίγνωσης και συνείδησης,",
+                  "τη διαρκή αλληλεπίδραση συνειδητών και μη συνειδητών διεργασιών,",
+                  "τη μικροδομή της εμπειρίας — τον τρόπο με τον οποίο η εμπειρία συντίθεται, ξεδιπλώνεται και αναδιοργανώνεται διαρκώς."
+                ]
+              },
+              {
+                heading: "3.2. Επιρροές και πηγές έμπνευσης της PSP",
+                paragraphs: [
+                  "Η PSP αντλεί επίσης στοιχεία από τις σύγχρονες νευροεπιστήμες —συμπεριλαμβανομένων των ενσώματων διεργασιών και των κατοπτρικών συστημάτων— καθώς και από επιλεγμένες θεμελιακές ιδέες της σύγχρονης φυσικής γύρω από την αλληλεπίδραση, την έννοια της αυτοοργάνωσης και τη δυναμική φύση της πραγματικότητας. Περαιτέρω επιρροές προέρχονται από τα φιλοσοφικά θεμέλια της θεραπείας Gestalt και από αυτοσχεδιαστικές πρακτικές, συμπεριλαμβανομένου του Playback Theatre — χωρίς ωστόσο να καθιστούν την PSP κλάδο της θεραπείας Gestalt ή μορφή θεατρικής ή καλλιτεχνικής εκπαίδευσης."
+                ]
+              },
+              {
+                heading: "3.3. Η συνδυαστική και συνθετική φύση της PSP",
+                paragraphs: [
+                  "Η PSP ενσωματώνει επιλεκτικά αυτές τις διαφορετικές πηγές στη δική της οπτική για την ενσώματη διάσταση της εμπειρίας, την επίγνωση και την αλληλεπίδραση. Η ιδιαιτερότητά της δεν έγκειται απαραίτητα στις επιμέρους θεωρητικές ιδέες από τις οποίες αντλεί το υλικό της, αλλά στον τρόπο με τον οποίο τις συνθέτει σε μια πρωτότυπη βιωματική μεθοδολογία. Αυτό συνάδει απόλυτα με την ταυτότητά της ως συμπληρωματικού εργαλείου, και όχι ως ενός αυτόνομου ψυχοθεραπευτικού συστήματος."
+                ]
+              },
+              {
+                heading: "3.4. Η πρωτότυπη βιωματική αρχιτεκτονική της PSP",
+                paragraphs: [
+                  "Οι παρακάτω έννοιες αναπτύχθηκαν ειδικά για την PSP και αποτελούν τον σκελετό της βιωματικής της μεθοδολογίας:"
+                ],
+                subgroups: [
+                  {
+                    title: "(α) Τρεις μορφές βιωματικής οργάνωσης — τρόποι με τους οποίους αποκτά σχήμα η εξελισσόμενη εμπειρία μας:",
+                    bullets: [
+                      "Προσωπικό Φιλμ (Personal Film) — Μια συμβολική μορφή νοερής απεικόνισης, μέσα από την οποία το βίωμα ξεδιπλώνεται σαν ένα είδος εσωτερικής ταινίας.",
+                      "Σωματική Πρόθεση (Somatic Intention) — Η σωματική τάση προς δράση, πριν η δράση εκκινήσει.",
+                      "Σωματική Εικόνα (Body Image) — Η εικόνα ή η αναπαράσταση που σχηματίζεται στον νου μας για το ίδιο μας το σώμα, καθώς το βιώνουμε."
+                    ]
+                  },
+                  {
+                    title: "(β) Μια αρχή βασισμένη στη δράση:",
+                    paragraphs: [
+                      "Το Κινητικό Μοτίβο (The Kinetic Motif) — Μια ελάχιστη μονάδα ενσώματης δράσης (κίνησης ή ήχου) που μπορεί να επαναληφθεί και να παραλλαχθεί."
+                    ]
+                  },
+                  {
+                    title: "(γ) Ένα ευέλικτο συνθετικό πλαίσιο:",
+                    paragraphs: [
+                      "1000+1 Ασκήσεις για Ενσώματη Αυτοσχεδιαστική Αλληλεπίδραση (1000+1 Exercises for Embodied Improvised Interaction — Ένα ανοιχτό πλαίσιο για τη δημιουργία και την επεξεργασία βιωματικών ασκήσεων, πέρα από την τήρηση προκαθορισμένων τεχνικών."
+                    ]
+                  }
+                ],
+                closingParagraphs: [
+                  "Αυτές οι πρωτότυπες έννοιες και οι μεταξύ τους διασυνδέσεις αναπτύσσονται εκτενώς στο Βιβλίο Γ “Pathways into the Dynamics of Lived Experience”."
+                ]
+              }
+            ]
+          }
+        },
+        nav: [
+          { title: "Αρχική Σελίδα", action: "front" },
+          { title: "1. Η φύση της PSP", action: "category", categoryId: "nature", note: "1.1–1.6" },
+          { title: "2. Τι σημαίνουν τα αρχικά PSP", action: "category", categoryId: "letters", note: "P · S · P" },
+          { title: "3. Εννοιολογικά και θεωρητικά θεμέλια", action: "category", categoryId: "foundations", note: "3.1–3.4" },
+          { title: "Πεδία Εφαρμογής", note: "Έτοιμο για κείμενο" },
+          { title: "Ιδρυτής & Γενεαλογία", note: "Έτοιμο για κείμενο" },
+          { title: "Δημοσιεύσεις & Πόροι", note: "Έτοιμο για κείμενο" }
+        ]
+      },
+      ru: {
+        menuLabel: "меню",
+        backFront: "← Главная страница",
+        contactLabel: "контакт",
+        privacyLabel: "конфиденциальность",
+        lines: [
+          "Подход к проживанию опыта — действовать,",
+          "взаимодействовать и становиться через движение,",
+          "телесное присутствие и импровизацию."
+        ],
+        programmes: "Предстоящие программы и мероприятия",
+        programmesTitle: "Предстоящие программы и мероприятия",
+        programmesBody: "Новые практические семинары, обучающие циклы и открытые встречи по методу Process–Stage–Praxis будут публиковаться здесь.",
+        drawerContact: "Контакт",
+        toggleProgrammes: "Показать/скрыть блок программ",
+        contactHeading: "Связаться с PSP",
+        contactText: "По вопросам семинаров, обучающих программ, индивидуальной работы или международного сотрудничества:",
+        copyLabel: "Копировать",
+        copiedLabel: "Скопировано",
+        privacyTitle: "Конфиденциальность и защита данных",
+        privacyBody: "PSP уважает вашу конфиденциальность. Этот сайт не использует навязчивые отслеживающие файлы cookie и не передаёт персональные данные третьим лицам.",
+        categories: {
+          nature: {
+            title: "1. Природа PSP",
+            progress: "1.1 – 1.6",
+            passages: [
+              {
+                heading: "1.1. Что такое PSP",
+                paragraphs: [
+                  "PSP (Process–Stage–Praxis) — развивающийся подход к телесному присутствию, взаимодействию и творческой импровизации, который Петрос Теодору разрабатывает с 2010 года. Опираясь на практику непосредственного переживания и феноменологическое понимание человеческого опыта, PSP предлагает гибкую основу для углубления осознавания — способности на разных уровнях чувствовать и воспринимать то, что происходит по мере развёртывания опыта."
+                ]
+              },
+              {
+                heading: "1.2. От телесного осознавания к осознаванию отношений",
+                paragraphs: [
+                  "Через движение, импровизацию и телесное взаимодействие PSP способствует развитию телесного осознавания в более глубокое осознавание отношений — присутствию не только к тому, что происходит внутри нас, но и к тому, как мы участвуем в ситуациях, в которых находимся."
+                ]
+              },
+              {
+                heading: "1.3. PSP как дополнительный инструмент — и чем PSP не является",
+                paragraphs: [
+                  "PSP не заменяет профессиональную подготовку или уже имеющийся у специалиста набор навыков и ресурсов. Напротив, он предлагает дополнительную гибкую основу для поддержки и углубления работы с процессом (то есть с непрерывным развёртыванием проживаемого опыта) как в индивидуальном, так и в групповом формате. В этом качестве PSP используется в самых разных областях как дополнительный инструмент и вспомогательный профессиональный навык.",
+                  "PSP не является самостоятельной терапевтической или художественной системой, а также не представляет собой разновидность драматерапии, танцевальной или арт-терапии, Playback-театра или театрального обучения. Вместо этого PSP открывает дополнительные возможности для углубления и уточнения телесного осознавания и осознавания опыта в целом — того, как происходящее складывается в нашем переживании и взаимодействии с другими."
+                ]
+              },
+              {
+                heading: "1.4. Взаимосвязывающая природа PSP",
+                paragraphs: [
+                  "PSP объединяет телесное присутствие, импровизацию, творческое воображение и взаимодействие в рамках открытой, экзистенциально ориентированной практики переживания. Особенность PSP заключается не в самих этих элементах, а в способах их взаимосвязи, создающих условия для возникновения новых возможностей осознавания, выражения и опыта отношений."
+                ]
+              },
+              {
+                heading: "1.5. PSP и телесно-ориентированные подходы: особенности направленности",
+                paragraphs: [
+                  "PSP разделяет с многими телесно-ориентированными и основанными на непосредственном переживании подходами интерес к телесному осознаванию, движению и отношениям между людьми. Однако особенность его направленности состоит не столько в исследовании движения как такового или наблюдении за собственными телесными ощущениями изнутри, сколько в присутствии человека телесно в конкретной ситуации — в том, как он чувствует, действует и взаимодействует в непрерывно разворачивающемся процессе переживания.",
+                  "Благодаря своей гибкой практической основе PSP связывает воедино движение, позу, воображение, телесное осознавание и взаимодействие, целенаправленно создавая условия, в которых могут возникать новые возможности переживания."
+                ]
+              },
+              {
+                heading: "1.6. PSP и развивающие и реляционные подходы к телесному движению",
+                paragraphs: [
+                  "Общий интерес к телесному осознаванию, кинестетическим процессам и отношениям между людьми сближает PSP с этими подходами. Отличительная особенность PSP заключается не в самих этих элементах, а в том, как именно он организует и объединяет их в своей методологии работы с переживанием. Тем самым PSP открывает дополнительные возможности для телесной и опытно-ориентированной работы, которые дополняют и обогащают существующие подходы и профессиональные навыки, не заменяя их."
+                ]
+              }
+            ]
+          },
+          letters: {
+            title: "2. Что означают буквы PSP",
+            progress: "Process · Stage · Praxis",
+            passages: [
+              {
+                heading: "Process (P) — Процесс",
+                paragraphs: [
+                  "Process (P) — Процесс означает непрерывное развёртывание опыта — постоянное движение, изменение и реорганизацию. Каждый возникающий момент вырастает из предыдущего, но при этом привносит нечто новое. В этом смысле само переживание по своей природе импровизационно: оно разворачивается без заранее заданного сценария, рождаясь из того, что происходило непосредственно перед этим."
+                ]
+              },
+              {
+                heading: "Stage (S) — Поле взаимодействия",
+                paragraphs: [
+                  "Stage (S) — Поле взаимодействия означает динамически совместно создаваемое интерсубъективное поле, в котором мы встречаемся с другими людьми, действуем и участвуем в происходящем. Речь идёт не просто о физическом пространстве или окружающей обстановке, и тем более не о театральной сцене."
+                ]
+              },
+              {
+                heading: "Praxis (P) — Практическое действие",
+                paragraphs: [
+                  "Praxis (P) — Практическое действие означает наше активное, телесно воплощённое и отзывчивое участие в этом поле через спонтанное действие и импровизационное взаимодействие. Praxis можно также понимать как динамический мост между Process и Stage, благодаря которому переживание обретает форму в действии и взаимодействии.",
+                  "В PSP понятие Praxis выражает также живое единство теоретического понимания и практической методологии.",
+                  "Этот термин отсылает к аристотелевскому понятию praxis, подчёркивая действие как неотъемлемое измерение человеческого существования и нашего участия в формировании проживаемой реальности."
+                ]
+              },
+              {
+                heading: "Три взаимосвязанные линии — единый разворачивающийся опыт",
+                paragraphs: [
+                  "Process, Stage и Praxis — не три независимых компонента и не последовательные этапы, а три неразделимые, взаимосвязанные перспективы рассмотрения одного и того же разворачивающегося опыта."
+                ]
+              }
+            ]
+          },
+          foundations: {
+            title: "3. Концептуальные и теоретические основания",
+            progress: "3.1 – 3.4",
+            passages: [
+              {
+                heading: "3.1. Философская и теоретическая направленность PSP",
+                paragraphs: [
+                  "PSP опирается на экзистенциальные, феноменологические, реляционные и гуманистические представления, уделяя особое внимание Новой феноменологии и первичности непосредственного телесно проживаемого опыта.",
+                  "Теоретические основания PSP, подробно представленные в Книге A «Размышления о чуде человеческого переживания», включают:"
+                ],
+                bullets: [
+                  "многоуровневую модель осознавания и сознания,",
+                  "взаимодействие сознательных и неосознаваемых процессов,",
+                  "микроструктуру переживания — то, как опыт возникает, разворачивается и непрерывно реорганизуется."
+                ]
+              },
+              {
+                heading: "3.2. Влияния и источники вдохновения PSP",
+                paragraphs: [
+                  "PSP также обращается к современной нейронауке, включая исследования телесно воплощённых процессов и систем зеркального отражения действий, а также к отдельным фундаментальным идеям современной физики, касающимся взаимодействия, самоорганизации и динамической природы реальности. Другими источниками влияния стали философские основания гештальт-терапии и импровизационные практики, включая Playback-театр. При этом PSP не является ни ответвлением гештальт-терапии, ни формой театрального или художественного обучения."
+                ]
+              },
+              {
+                heading: "3.3. Интегративный характер PSP",
+                paragraphs: [
+                  "PSP избирательно объединяет влияния из разных областей, формируя собственное понимание телесно проживаемого опыта, осознавания и взаимодействия. Его оригинальность заключается не обязательно в отдельных теоретических идеях, на которые он опирается, а в том, как они соединяются в особую методологию работы с переживанием. Это соответствует пониманию PSP как дополнительного ресурса, а не самостоятельной системы психотерапии."
+                ]
+              },
+              {
+                heading: "3.4. Оригинальная структура работы с переживанием в PSP",
+                paragraphs: [
+                  "Следующие понятия и практическая модель были разработаны специально для PSP и составляют основу его методологии работы с переживанием:"
+                ],
+                subgroups: [
+                  {
+                    title: "(a) Три формы организации переживания — способы, которыми наш непрерывно разворачивающийся опыт обретает форму:",
+                    bullets: [
+                      "Personal Film (Личный фильм) — символическая форма мысленных образов, через которую проживаемый опыт разворачивается как своего рода внутренний фильм.",
+                      "Somatic Intention (Соматическое намерение) — телесный импульс или устремлённость к действию, возникающие ещё до самого действия.",
+                      "Body Image (Образ тела) — образ или представление о собственном теле, каким мы переживаем его изнутри."
+                    ]
+                  },
+                  {
+                    title: "(b) Принцип, основанный на действии:",
+                    paragraphs: [
+                      "The Kinetic Motif (Кинетический мотив) — минимальная единица телесно воплощённого действия (движения или звука), которую можно повторять и варьировать."
+                    ]
+                  },
+                  {
+                    title: "(c) Гибкая композиционная модель:",
+                    paragraphs: [
+                      "1000+1 упражнение для импровизированного телесного взаимодействия — открытая модель создания и адаптации упражнений, ориентированных на переживание, вместо следования фиксированным техникам."
+                    ]
+                  }
+                ],
+                closingParagraphs: [
+                  "Эти оригинальные понятия и их взаимосвязи подробно раскрываются в Книге C «Пути к пониманию динамики проживаемого опыта»."
+                ]
+              }
+            ]
+          }
+        },
+        nav: [
+          { title: "Главная страница", action: "front" },
+          { title: "1. Природа PSP", action: "category", categoryId: "nature", note: "1.1–1.6" },
+          { title: "2. Что означают буквы PSP", action: "category", categoryId: "letters", note: "P · S · P" },
+          { title: "3. Концептуальные и теоретические основания", action: "category", categoryId: "foundations", note: "3.1–3.4" },
+          { title: "Области применения", note: "Готово к вставке" },
+          { title: "Основатель и истоки", note: "Готово к вставке" },
+          { title: "Публикации и ресурсы", note: "Готово к вставке" }
+        ]
+      }
+    };
+
+    let currentLang = "en";
+    let activeCategoryId = null;
+    let simWidth = "full";
+    let simZoom = 1;
+
+    const siteShell = document.querySelector(".site-shell");
+    const frontStage = document.getElementById("frontStage");
+    const heroLines = document.getElementById("heroLines");
+    const categoryReader = document.getElementById("categoryReader");
+    const readerTitle = document.getElementById("readerTitle");
+    const readerProgress = document.getElementById("readerProgress");
+    const readerPassages = document.getElementById("readerPassages");
+    const navDrawer = document.getElementById("navDrawer");
+    const navList = document.getElementById("navList");
+    const infoModal = document.getElementById("infoModal");
+    const modalTitle = document.getElementById("modalTitle");
+    const modalBody = document.getElementById("modalBody");
+    const backdrop = document.getElementById("backdrop");
+    const programmesSlot = document.getElementById("programmesSlot");
+
+    function fitIntroLines() {
+      const spans = heroLines.querySelectorAll("span");
+      if (!spans.length) return;
+      const containerWidth = siteShell ? siteShell.clientWidth : window.innerWidth;
+      const isDesktop = containerWidth >= 768;
+      const baseSize = isDesktop ? 19 : 14.5;
+      const minSize = 7.5;
+      const maxWidth = containerWidth - 16;
+
+      spans.forEach((span) => {
+        span.style.fontSize = baseSize + "px";
+      });
+
+      let currentSize = baseSize;
+      while (currentSize > minSize) {
+        let overflows = false;
+        spans.forEach((span) => {
+          if (span.scrollWidth > maxWidth) {
+            overflows = true;
+          }
+        });
+        if (!overflows) break;
+        currentSize = Math.round((currentSize - 0.25) * 100) / 100;
+        spans.forEach((span) => {
+          span.style.fontSize = currentSize + "px";
+        });
+      }
+    }
+
+    function applyPreviewSim(nextWidth, nextZoom, autoFit = false) {
+      simWidth = nextWidth;
+      let resolvedZoom = nextZoom;
+
+      if (autoFit && simWidth !== "full") {
+        const numericW = Number(simWidth);
+        const availW = window.innerWidth - 24;
+        if (numericW > availW) {
+          resolvedZoom = Math.max(0.4, Math.floor((availW / numericW) * 20) / 20);
+        } else {
+          resolvedZoom = 1;
+        }
+      }
+
+      simZoom = resolvedZoom;
+      const isSim = simWidth !== "full" || simZoom !== 1;
+      document.body.classList.toggle("sim-active", isSim);
+
+      if (siteShell) {
+        siteShell.style.width = simWidth === "full" ? "100%" : simWidth + "px";
+        siteShell.style.maxWidth = "none";
+        siteShell.style.minHeight = simWidth === "full" ? "100dvh" : "844px";
+        siteShell.style.transform = simZoom === 1 ? "none" : `scale(${simZoom})`;
+      }
+
+      document.querySelectorAll("[data-sim-width]").forEach((btn) => {
+        btn.classList.toggle("active", btn.dataset.simWidth === String(simWidth));
+      });
+      document.querySelectorAll("[data-sim-zoom]").forEach((btn) => {
+        btn.classList.toggle("active", Math.abs(Number(btn.dataset.simZoom) - simZoom) < 0.01);
+      });
+
+      if (!activeCategoryId) {
+        requestAnimationFrame(fitIntroLines);
+      }
+    }
+
+    function renderCategory(categoryId) {
+      const cat = content[currentLang].categories[categoryId];
+      if (!cat) return;
+      activeCategoryId = categoryId;
+      frontStage.classList.add("hidden");
+      categoryReader.classList.add("active");
+      document.getElementById("backFrontBtn").textContent = content[currentLang].backFront;
+      readerTitle.textContent = cat.title;
+      readerProgress.textContent = cat.progress || "";
+
+      readerPassages.innerHTML = cat.passages
+        .map(
+          (p) => `
+          <article class="passage-block">
+            <h2 class="passage-heading">${p.heading}</h2>
+            ${(p.paragraphs || []).map((para) => `<p class="passage-paragraph">${para}</p>`).join("")}
+            ${
+              p.bullets
+                ? `<ul class="passage-list">${p.bullets.map((b) => `<li>${b}</li>`).join("")}</ul>`
+                : ""
+            }
+            ${
+              p.subgroups
+                ? p.subgroups
+                    .map(
+                      (sg) => `
+                      <div class="passage-subgroup">
+                        <div class="passage-subgroup-title">${sg.title}</div>
+                        ${(sg.paragraphs || []).map((para) => `<p class="passage-paragraph">${para}</p>`).join("")}
+                        ${
+                          sg.bullets
+                            ? `<ul class="passage-list">${sg.bullets.map((b) => `<li>${b}</li>`).join("")}</ul>`
+                            : ""
+                        }
+                      </div>
+                    `
+                    )
+                    .join("")
+                : ""
+            }
+            ${(p.closingParagraphs || []).map((para) => `<p class="passage-paragraph">${para}</p>`).join("")}
+          </article>
+        `
+        )
+        .join("");
+
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      renderNavDrawer();
+    }
+
+    function showFrontPage() {
+      activeCategoryId = null;
+      categoryReader.classList.remove("active");
+      frontStage.classList.remove("hidden");
+      requestAnimationFrame(fitIntroLines);
+      renderNavDrawer();
+    }
+
+    function renderNavDrawer() {
+      const dict = content[currentLang];
+      navList.innerHTML = "";
+      dict.nav.forEach((item) => {
+        const li = document.createElement("li");
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "nav-item-btn";
+        if (
+          (item.action === "front" && activeCategoryId === null) ||
+          (item.action === "category" && item.categoryId === activeCategoryId)
+        ) {
+          btn.classList.add("active");
+        }
+
+        const titleSpan = document.createElement("span");
+        titleSpan.textContent = item.title;
+        btn.appendChild(titleSpan);
+
+        if (item.note) {
+          const noteSpan = document.createElement("span");
+          noteSpan.className = "nav-item-note";
+          noteSpan.textContent = item.note;
+          btn.appendChild(noteSpan);
+        }
+
+        btn.addEventListener("click", () => {
+          closeOverlays();
+          if (item.action === "front") {
+            showFrontPage();
+          } else if (item.action === "category" && item.categoryId) {
+            renderCategory(item.categoryId);
+          } else {
+            openModal(item.title, `<p>${item.note}</p>`);
+          }
+        });
+
+        li.appendChild(btn);
+        navList.appendChild(li);
+      });
+    }
+
+    function setLanguage(lang) {
+      if (!content[lang]) return;
+      currentLang = lang;
+      const dict = content[lang];
+
+      document.querySelectorAll(".lang-btn").forEach((btn) => {
+        btn.classList.toggle("active", btn.dataset.lang === lang);
+      });
+
+      document.getElementById("menuLabel").textContent = dict.menuLabel;
+      document.getElementById("contactBtn").textContent = dict.contactLabel;
+      document.getElementById("privacyBtn").textContent = dict.privacyLabel;
+      document.getElementById("programmesBtn").textContent = dict.programmes;
+      document.getElementById("drawerContactBtn").textContent = dict.drawerContact;
+      document.getElementById("toggleProgrammesBtn").textContent = dict.toggleProgrammes;
+
+      heroLines.innerHTML = dict.lines.map((line) => `<span>${line}</span>`).join("");
+      requestAnimationFrame(fitIntroLines);
+
+      if (activeCategoryId) {
+        renderCategory(activeCategoryId);
+      } else {
+        renderNavDrawer();
+      }
+    }
+
+    function openDrawer() {
+      closeOverlays();
+      navDrawer.classList.add("open");
+      navDrawer.setAttribute("aria-hidden", "false");
+      backdrop.classList.add("open");
+    }
+
+    function openModal(title, htmlContent) {
+      closeOverlays();
+      modalTitle.textContent = title;
+      modalBody.innerHTML = htmlContent;
+      infoModal.classList.add("open");
+      infoModal.setAttribute("aria-hidden", "false");
+      backdrop.classList.add("open");
+    }
+
+    function closeOverlays() {
+      navDrawer.classList.remove("open");
+      navDrawer.setAttribute("aria-hidden", "true");
+      infoModal.classList.remove("open");
+      infoModal.setAttribute("aria-hidden", "true");
+      backdrop.classList.remove("open");
+    }
+
+    function openContactModal() {
+      const dict = content[currentLang];
+      openModal(
+        dict.contactHeading,
+        `<p>${dict.contactText}</p>
+         <div class="contact-email-box">
+           <span id="pspEmailText">info@psp-approach.org</span>
+           <button type="button" class="copy-btn" id="copyEmailBtn">${dict.copyLabel}</button>
+         </div>`
+      );
+      const copyBtn = document.getElementById("copyEmailBtn");
+      if (copyBtn) {
+        copyBtn.addEventListener("click", () => {
+          const tempInput = document.createElement("input");
+          tempInput.value = "info@psp-approach.org";
+          document.body.appendChild(tempInput);
+          tempInput.select();
+          document.execCommand("copy");
+          document.body.removeChild(tempInput);
+          copyBtn.textContent = dict.copiedLabel;
+        });
+      }
+    }
+
+    document.querySelectorAll(".lang-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        setLanguage(btn.dataset.lang);
+      });
+    });
+
+    document.getElementById("menuBtn").addEventListener("click", openDrawer);
+    document.getElementById("closeDrawerBtn").addEventListener("click", closeOverlays);
+    document.getElementById("closeModalBtn").addEventListener("click", closeOverlays);
+    backdrop.addEventListener("click", closeOverlays);
+
+    document.getElementById("backFrontBtn").addEventListener("click", showFrontPage);
+
+    document.getElementById("contactBtn").addEventListener("click", openContactModal);
+    document.getElementById("drawerContactBtn").addEventListener("click", openContactModal);
+
+    document.getElementById("privacyBtn").addEventListener("click", () => {
+      const dict = content[currentLang];
+      openModal(dict.privacyTitle, `<p>${dict.privacyBody}</p>`);
+    });
+
+    document.getElementById("programmesBtn").addEventListener("click", () => {
+      const dict = content[currentLang];
+      openModal(dict.programmesTitle, `<p>${dict.programmesBody}</p>`);
+    });
+
+    document.getElementById("toggleProgrammesBtn").addEventListener("click", () => {
+      programmesSlot.classList.toggle("visible");
+      closeOverlays();
+    });
+
+    document.getElementById("openSimToolbarBtn").addEventListener("click", () => {
+      document.body.classList.add("sim-toolbar-open");
+      closeOverlays();
+    });
+
+    document.querySelectorAll("[data-sim-width]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        applyPreviewSim(btn.dataset.simWidth, simZoom, true);
+      });
+    });
+
+    document.querySelectorAll("[data-sim-zoom]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        applyPreviewSim(simWidth, Number(btn.dataset.simZoom), false);
+      });
+    });
+
+    document.getElementById("simExitBtn").addEventListener("click", () => {
+      applyPreviewSim("full", 1, false);
+      document.body.classList.remove("sim-toolbar-open");
+    });
+
+    window.addEventListener("resize", () => {
+      if (!activeCategoryId) {
+        fitIntroLines();
+      }
+    });
+
+    function replayLogoAnimation() {
+      const svg = document.querySelector(".logo-svg");
+      if (!svg) return;
+      const animatedEls = svg.querySelectorAll(
+        ".anim-black-crescent, .anim-gold-crescent, .anim-psp-letters, .anim-light-sweep"
+      );
+      animatedEls.forEach((el) => {
+        el.style.animation = "none";
+      });
+      void svg.getBoundingClientRect();
+      animatedEls.forEach((el) => {
+        el.style.animation = "";
+      });
+    }
+
+    const logoCardWrap = document.querySelector(".logo-card-wrap");
+    if (logoCardWrap) {
+      logoCardWrap.addEventListener("click", replayLogoAnimation);
+    }
+
+    if (document.hidden) {
+      const onFirstVisible = () => {
+        if (!document.hidden) {
+          document.removeEventListener("visibilitychange", onFirstVisible);
+          replayLogoAnimation();
+        }
+      };
+      document.addEventListener("visibilitychange", onFirstVisible);
+    }
+
+    window.addEventListener("DOMContentLoaded", () => {
+      setLanguage("en");
+      replayLogoAnimation();
+    });
+  </script>
+</body>
+</html>

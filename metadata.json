@@ -1,0 +1,6 @@
+{
+  "name": "PSP — Process · Stage · Praxis",
+  "description": "An approach to experiencing — to interact, act, and become through movement, embodied presence, and improvisation.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
