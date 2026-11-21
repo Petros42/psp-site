@@ -1,3 +1,4 @@
+import { useRef, type MouseEvent } from 'react';
 import type { ActiveView, NavItem } from '../types';
 
 interface NavDrawerProps {
@@ -5,9 +6,15 @@ interface NavDrawerProps {
   navItems: NavItem[];
   activeView: ActiveView;
   drawerContactLabel: string;
+  showPreviewControls: boolean;
+  toggleProgrammesLabel: string;
+  toggleToolbarLabel: string;
   onClose: () => void;
   onSelectNavItem: (item: NavItem) => void;
   onOpenContact: () => void;
+  onTogglePreviewControls: () => void;
+  onToggleProgrammes: () => void;
+  onToggleToolbar: () => void;
 }
 
 export function NavDrawer({
@@ -15,10 +22,39 @@ export function NavDrawer({
   navItems,
   activeView,
   drawerContactLabel,
+  showPreviewControls,
+  toggleProgrammesLabel,
+  toggleToolbarLabel,
   onClose,
   onSelectNavItem,
   onOpenContact,
+  onTogglePreviewControls,
+  onToggleProgrammes,
+  onToggleToolbar,
 }: NavDrawerProps) {
+  const tapTimestampsRef = useRef<number[]>([]);
+
+  const handleTripleTap = (e: MouseEvent<HTMLDivElement>) => {
+    e.stopPropagation();
+
+    const now = Date.now();
+    const recent = tapTimestampsRef.current.filter((t) => now - t <= 1500);
+    recent.push(now);
+    tapTimestampsRef.current = recent;
+
+    if (recent.length >= 3) {
+      tapTimestampsRef.current = [];
+      onTogglePreviewControls();
+    }
+  };
+
+  const handleFooterEmptyClick = (e: MouseEvent<HTMLDivElement>) => {
+    if (e.target instanceof Element && e.target.closest('button') !== null) {
+      return;
+    }
+    handleTripleTap(e);
+  };
+
   return (
     <aside
       className={`nav-drawer${open ? ' open' : ''}`}
@@ -26,14 +62,20 @@ export function NavDrawer({
       aria-hidden={!open}
     >
       <div>
-        <div className="drawer-header">
+        <div
+          className="drawer-header select-none cursor-pointer"
+          onClick={handleTripleTap}
+        >
           <span className="drawer-brand">PSP</span>
           <button
             type="button"
             className="close-btn"
             id="closeDrawerBtn"
             aria-label="Close menu"
-            onClick={onClose}
+            onClick={(e) => {
+              e.stopPropagation();
+              onClose();
+            }}
           >
             ×
           </button>
@@ -67,7 +109,12 @@ export function NavDrawer({
         </ul>
       </div>
 
-      <div className="drawer-footer">
+      <div
+        className="drawer-empty-space select-none cursor-pointer"
+        onClick={handleTripleTap}
+      />
+
+      <div className="drawer-footer" onClick={handleFooterEmptyClick}>
         <button
           type="button"
           className="drawer-sub-btn"
@@ -76,6 +123,27 @@ export function NavDrawer({
         >
           {drawerContactLabel}
         </button>
+
+        {showPreviewControls && (
+          <>
+            <button
+              type="button"
+              className="drawer-sub-btn"
+              id="toggleProgrammesBtn"
+              onClick={onToggleProgrammes}
+            >
+              {toggleProgrammesLabel}
+            </button>
+            <button
+              type="button"
+              className="drawer-sub-btn"
+              id="toggleToolbarBtn"
+              onClick={onToggleToolbar}
+            >
+              {toggleToolbarLabel}
+            </button>
+          </>
+        )}
       </div>
     </aside>
   );

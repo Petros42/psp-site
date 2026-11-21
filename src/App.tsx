@@ -47,14 +47,16 @@ export default function App() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [modal, setModal] = useState<ModalState>(null);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
-  const [isPreviewMode, setIsPreviewMode] = useState<boolean>(hasPreviewInUrl);
+  const [drawerControlsVisible, setDrawerControlsVisible] = useState<boolean>(hasPreviewInUrl);
+  const [programmesToggled, setProgrammesToggled] = useState<boolean>(false);
+  const [toolbarOpen, setToolbarOpen] = useState<boolean>(false);
   const [simWidth, setSimWidth] = useState<SimWidth>('full');
   const [simZoom, setSimZoom] = useState<number>(1);
 
   const siteShellRef = useRef<HTMLDivElement>(null);
   const siteScrollRef = useRef<HTMLDivElement>(null);
   const heroLinesRef = useRef<HTMLDivElement>(null);
-  const previewTapTimestampsRef = useRef<number[]>([]);
+  const logoTapTimestampsRef = useRef<number[]>([]);
 
   const dict = content[currentLang];
   const isFront = activeView.type === 'front';
@@ -62,7 +64,7 @@ export default function App() {
   const activeCategoryId = activeView.type === 'category' ? activeView.id : null;
   const activeCategory = activeCategoryId ? dict.categories[activeCategoryId] : null;
   const backdropOpen = drawerOpen || modal !== null;
-  const programmesVisible = UPCOMING_PROGRAMMES.length > 0 || isPreviewMode;
+  const programmesVisible = UPCOMING_PROGRAMMES.length > 0 || programmesToggled;
 
   const currentCategoryIndex = activeCategoryId
     ? CATEGORY_ORDER.indexOf(activeCategoryId)
@@ -143,32 +145,40 @@ export default function App() {
     []
   );
 
-  const exitPreviewMode = useCallback(() => {
-    setIsPreviewMode(false);
-    setSimWidth('full');
-    setSimZoom(1);
-    clearPreviewFromUrl();
+  const resetAndHideToolbar = useCallback(() => {
+    setToolbarOpen(false);
   }, []);
 
-  // Document-level pointerdown listener: 3 taps within 700ms on center logo or top-left 60x60px corner toggles preview mode
+  const toggleToolbar = useCallback(() => {
+    setToolbarOpen((prev) => !prev);
+    setDrawerOpen(false);
+  }, []);
+
+  const toggleProgrammesSlot = useCallback(() => {
+    setProgrammesToggled((prev) => !prev);
+    setDrawerOpen(false);
+  }, []);
+
+  const togglePreviewControls = useCallback(() => {
+    setDrawerControlsVisible((prev) => !prev);
+  }, []);
+
+  // Document-level pointerdown listener for front-page center logo (3 taps within 1.5s toggles drawer control buttons)
   useEffect(() => {
     const onPointerDown = (e: PointerEvent) => {
       const target = e.target;
-      const hitLogo = target instanceof Element && target.closest('.logo-card-wrap') !== null;
-      const hitTopLeftCorner = e.clientX <= 60 && e.clientY <= 60;
-
-      if (!hitLogo && !hitTopLeftCorner) {
+      if (!(target instanceof Element) || target.closest('.logo-card-wrap') === null) {
         return;
       }
 
       const now = Date.now();
-      const recent = previewTapTimestampsRef.current.filter((t) => now - t <= 700);
+      const recent = logoTapTimestampsRef.current.filter((t) => now - t <= 1500);
       recent.push(now);
-      previewTapTimestampsRef.current = recent;
+      logoTapTimestampsRef.current = recent;
 
       if (recent.length >= 3) {
-        previewTapTimestampsRef.current = [];
-        setIsPreviewMode((prev) => !prev);
+        logoTapTimestampsRef.current = [];
+        setDrawerControlsVisible((prev) => !prev);
       }
     };
 
@@ -180,7 +190,7 @@ export default function App() {
   useEffect(() => {
     const onHashChange = () => {
       if (window.location.hash.toLowerCase() === '#preview') {
-        setIsPreviewMode(true);
+        setDrawerControlsVisible(true);
       }
     };
 
@@ -188,37 +198,42 @@ export default function App() {
     return () => window.removeEventListener('hashchange', onHashChange);
   }, []);
 
-  // Reset simulation dimensions and URL markers cleanly whenever preview mode turns off
+  // Cleanly reset preview controls and URL markers when drawer controls are hidden again
   useEffect(() => {
-    if (!isPreviewMode) {
-      setSimWidth('full');
-      setSimZoom(1);
+    if (!drawerControlsVisible) {
+      setToolbarOpen(false);
+      setProgrammesToggled(false);
       clearPreviewFromUrl();
     }
-  }, [isPreviewMode]);
+  }, [drawerControlsVisible]);
+
+  // Reset simulation dimensions whenever the toolbar closes
+  useEffect(() => {
+    document.body.classList.toggle('sim-toolbar-open', toolbarOpen);
+    if (!toolbarOpen) {
+      setSimWidth('full');
+      setSimZoom(1);
+    }
+  }, [toolbarOpen]);
 
   // Sync body classes and .site-shell dimensions for screen/zoom preview simulation
   useEffect(() => {
-    const isSim = isPreviewMode && (simWidth !== 'full' || simZoom !== 1);
+    const isSim = toolbarOpen && (simWidth !== 'full' || simZoom !== 1);
     document.body.classList.toggle('sim-active', isSim);
 
     const siteShell = siteShellRef.current;
     if (siteShell) {
-      siteShell.style.width = !isPreviewMode || simWidth === 'full' ? '100%' : `${simWidth}px`;
+      siteShell.style.width = !toolbarOpen || simWidth === 'full' ? '100%' : `${simWidth}px`;
       siteShell.style.maxWidth = 'none';
       siteShell.style.minHeight = '';
-      siteShell.style.transform = !isPreviewMode || simZoom === 1 ? 'none' : `scale(${simZoom})`;
+      siteShell.style.transform = !toolbarOpen || simZoom === 1 ? 'none' : `scale(${simZoom})`;
     }
 
     if (isFront) {
       const rafId = requestAnimationFrame(fitIntroLines);
       return () => cancelAnimationFrame(rafId);
     }
-  }, [isPreviewMode, simWidth, simZoom, isFront, fitIntroLines]);
-
-  useEffect(() => {
-    document.body.classList.toggle('sim-toolbar-open', isPreviewMode);
-  }, [isPreviewMode]);
+  }, [toolbarOpen, simWidth, simZoom, isFront, fitIntroLines]);
 
   // Refit hero lines on language change, returning to front page, fonts ready, or resize
   useEffect(() => {
@@ -369,7 +384,7 @@ export default function App() {
 
           <MomentsGallery
             active={isGallery}
-            isPreviewMode={isPreviewMode}
+            isPreviewMode={drawerControlsVisible}
             gallery={dict.gallery}
             backFrontLabel={dict.backFront}
             prevLabel={dict.prevCategory}
@@ -399,9 +414,15 @@ export default function App() {
           navItems={dict.nav}
           activeView={activeView}
           drawerContactLabel={dict.drawerContact}
+          showPreviewControls={drawerControlsVisible}
+          toggleProgrammesLabel={dict.toggleProgrammes}
+          toggleToolbarLabel={dict.toggleToolbar}
           onClose={closeOverlays}
           onSelectNavItem={handleSelectNavItem}
           onOpenContact={() => openModalState({ type: 'contact' })}
+          onTogglePreviewControls={togglePreviewControls}
+          onToggleProgrammes={toggleProgrammesSlot}
+          onToggleToolbar={toggleToolbar}
         />
 
         <InfoModal
@@ -472,13 +493,13 @@ export default function App() {
         )}
       </div>
 
-      {isPreviewMode && (
+      {toolbarOpen && (
         <SimToolbar
           simWidth={simWidth}
           simZoom={simZoom}
           onSelectWidth={(w) => applyPreviewSim(w, simZoom, true)}
           onSelectZoom={(z) => applyPreviewSim(simWidth, z, false)}
-          onResetAndHide={exitPreviewMode}
+          onResetAndHide={resetAndHideToolbar}
         />
       )}
     </>

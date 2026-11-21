@@ -960,6 +960,8 @@ body.sim-toolbar-open:not(.sim-active) .site-shell {
   padding-bottom: 14px;
   border-bottom: 1px solid var(--border-hairline);
   margin-bottom: 14px;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .drawer-brand {
@@ -1024,6 +1026,12 @@ body.sim-toolbar-open:not(.sim-active) .site-shell {
   font-size: 11px;
   color: var(--text-muted);
   white-space: nowrap;
+}
+
+.drawer-empty-space {
+  flex: 1 1 auto;
+  min-height: 24px;
+  width: 100%;
 }
 
 .drawer-footer {

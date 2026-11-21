@@ -70,6 +70,7 @@ export interface LocaleContent {
   programmesBody: string;
   drawerContact: string;
   toggleProgrammes: string;
+  toggleToolbar: string;
   contactHeading: string;
   contactText: string;
   copyLabel: string;
