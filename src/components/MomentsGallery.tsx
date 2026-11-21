@@ -3,6 +3,7 @@ import type { CategoryId, GalleryContent } from '../types';
 
 interface MomentsGalleryProps {
   active: boolean;
+  isPreviewMode: boolean;
   gallery: GalleryContent;
   backFrontLabel: string;
   prevLabel: string;
@@ -14,6 +15,7 @@ interface MomentsGalleryProps {
 
 export function MomentsGallery({
   active,
+  isPreviewMode,
   gallery,
   backFrontLabel,
   prevLabel,
@@ -49,35 +51,37 @@ export function MomentsGallery({
 
       <p className="reader-category-lead">{gallery.intro}</p>
 
-      <div className="moments-grid">
-        {hasPhotos
-          ? GALLERY_PHOTOS.map((photo, index) => (
-              <button
-                type="button"
-                className="moment-card"
-                key={photo.src}
-                aria-label={`${gallery.title} ${index + 1}`}
-                onClick={() => onOpenLightbox(index)}
-              >
-                <img
-                  src={photo.src}
-                  alt={photo.alt ?? ''}
-                  loading="lazy"
-                />
-              </button>
-            ))
-          : placeholderSlots.map((slot) => (
-              <div
-                className="moment-placeholder"
-                key={slot}
-                aria-hidden="true"
-              >
-                <span className="moment-placeholder-num">
-                  {String(slot + 1).padStart(2, '0')}
-                </span>
-              </div>
-            ))}
-      </div>
+      {(hasPhotos || isPreviewMode) && (
+        <div className="moments-grid">
+          {hasPhotos
+            ? GALLERY_PHOTOS.map((photo, index) => (
+                <button
+                  type="button"
+                  className="moment-card"
+                  key={photo.src}
+                  aria-label={`${gallery.title} ${index + 1}`}
+                  onClick={() => onOpenLightbox(index)}
+                >
+                  <img
+                    src={photo.src}
+                    alt={photo.alt ?? ''}
+                    loading="lazy"
+                  />
+                </button>
+              ))
+            : placeholderSlots.map((slot) => (
+                <div
+                  className="moment-placeholder"
+                  key={slot}
+                  aria-hidden="true"
+                >
+                  <span className="moment-placeholder-num">
+                    {String(slot + 1).padStart(2, '0')}
+                  </span>
+                </div>
+              ))}
+        </div>
+      )}
 
       <nav className="reader-footer-nav" aria-label="Gallery navigation">
         <button

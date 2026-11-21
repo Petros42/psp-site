@@ -1,14 +1,16 @@
 import { useEffect, useState } from 'react';
 import { PSP_EMAIL } from '../data/content';
-import type { LocaleContent, ModalState } from '../types';
+import { UPCOMING_PROGRAMMES } from '../data/programmes';
+import type { Language, LocaleContent, ModalState } from '../types';
 
 interface InfoModalProps {
   modal: ModalState;
   dict: LocaleContent;
+  currentLang: Language;
   onClose: () => void;
 }
 
-export function InfoModal({ modal, dict, onClose }: InfoModalProps) {
+export function InfoModal({ modal, dict, currentLang, onClose }: InfoModalProps) {
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
@@ -97,7 +99,25 @@ export function InfoModal({ modal, dict, onClose }: InfoModalProps) {
 
         {modal?.type === 'privacy' && <p>{dict.privacyBody}</p>}
 
-        {modal?.type === 'programmes' && <p>{dict.programmesBody}</p>}
+        {modal?.type === 'programmes' &&
+          (UPCOMING_PROGRAMMES.length > 0 ? (
+            <ul className="programme-list">
+              {UPCOMING_PROGRAMMES.map((item) => (
+                <li className="programme-item" key={item.id}>
+                  <div className="programme-date">{item.date[currentLang]}</div>
+                  <div className="programme-title">{item.title[currentLang]}</div>
+                  {item.location && (
+                    <div className="programme-meta">{item.location[currentLang]}</div>
+                  )}
+                  {item.details && (
+                    <p className="programme-details">{item.details[currentLang]}</p>
+                  )}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p>{dict.programmesBody}</p>
+          ))}
 
         {modal?.type === 'note' && <p>{modal.text}</p>}
       </div>

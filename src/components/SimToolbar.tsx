@@ -32,12 +32,7 @@ export function SimToolbar({
   onResetAndHide,
 }: SimToolbarProps) {
   return (
-    <div
-      className="sim-toolbar"
-      id="simToolbar"
-      role="region"
-      aria-label="Screen and zoom controls"
-    >
+    <div className="sim-toolbar" id="simToolbar" role="region" aria-label="Screen size and zoom preview">
       <div className="sim-toolbar-row">
         <span className="sim-toolbar-tag">Screen:</span>
         {WIDTH_OPTIONS.map((opt) => (
@@ -45,7 +40,6 @@ export function SimToolbar({
             key={opt.value}
             type="button"
             className={`sim-chip${simWidth === opt.value ? ' active' : ''}`}
-            data-sim-width={opt.value}
             onClick={() => onSelectWidth(opt.value)}
           >
             {opt.label}
@@ -59,8 +53,7 @@ export function SimToolbar({
           <button
             key={opt.value}
             type="button"
-            className={`sim-chip${Math.abs(opt.value - simZoom) < 0.01 ? ' active' : ''}`}
-            data-sim-zoom={opt.value}
+            className={`sim-chip${Math.abs(simZoom - opt.value) < 0.01 ? ' active' : ''}`}
             onClick={() => onSelectZoom(opt.value)}
           >
             {opt.label}
@@ -69,7 +62,7 @@ export function SimToolbar({
         <button
           type="button"
           className="sim-close-chip"
-          id="simExitBtn"
+          id="simCloseToolbarBtn"
           onClick={onResetAndHide}
         >
           Reset &amp; Hide

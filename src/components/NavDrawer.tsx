@@ -5,9 +5,9 @@ interface NavDrawerProps {
   navItems: NavItem[];
   activeView: ActiveView;
   drawerContactLabel: string;
+  previewMode: boolean;
   toggleProgrammesLabel: string;
   onClose: () => void;
-  onOpenSimToolbar: () => void;
   onSelectNavItem: (item: NavItem) => void;
   onOpenContact: () => void;
   onToggleProgrammes: () => void;
@@ -18,9 +18,9 @@ export function NavDrawer({
   navItems,
   activeView,
   drawerContactLabel,
+  previewMode,
   toggleProgrammesLabel,
   onClose,
-  onOpenSimToolbar,
   onSelectNavItem,
   onOpenContact,
   onToggleProgrammes,
@@ -44,16 +44,6 @@ export function NavDrawer({
             ×
           </button>
         </div>
-
-        <button
-          type="button"
-          className="drawer-sub-btn drawer-sim-btn"
-          id="openSimToolbarBtn"
-          onClick={onOpenSimToolbar}
-        >
-          <span>Screen &amp; Zoom Toolbar</span>
-          <span className="drawer-sim-btn-note">390 · A56 · 768 · %</span>
-        </button>
 
         <ul className="nav-list" id="navList">
           {navItems.map((item, index) => {
@@ -92,14 +82,17 @@ export function NavDrawer({
         >
           {drawerContactLabel}
         </button>
-        <button
-          type="button"
-          className="drawer-sub-btn"
-          id="toggleProgrammesBtn"
-          onClick={onToggleProgrammes}
-        >
-          {toggleProgrammesLabel}
-        </button>
+
+        {previewMode && (
+          <button
+            type="button"
+            className="drawer-sub-btn"
+            id="toggleProgrammesBtn"
+            onClick={onToggleProgrammes}
+          >
+            {toggleProgrammesLabel}
+          </button>
+        )}
       </div>
     </aside>
   );

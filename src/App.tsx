@@ -9,7 +9,27 @@ import { SimToolbar } from './components/SimToolbar';
 import { TopBar } from './components/TopBar';
 import { CATEGORY_ORDER, content } from './data/content';
 import { GALLERY_PHOTOS } from './data/gallery';
+import { UPCOMING_PROGRAMMES } from './data/programmes';
 import type { ActiveView, CategoryId, Language, ModalState, NavItem, SimWidth } from './types';
+
+function hasPreviewQueryParam(): boolean {
+  if (typeof window === 'undefined') return false;
+  return new URLSearchParams(window.location.search).get('preview') === 'true';
+}
+
+function clearPreviewQueryParam(): void {
+  if (typeof window === 'undefined') return;
+  try {
+    const url = new URL(window.location.href);
+    if (url.searchParams.has('preview')) {
+      url.searchParams.delete('preview');
+      const nextUrl = `${url.pathname}${url.search}${url.hash}`;
+      window.history.replaceState({}, '', nextUrl);
+    }
+  } catch {
+    // Ignore history API restrictions in sandboxed frames
+  }
+}
 
 export default function App() {
   const [currentLang, setCurrentLang] = useState<Language>('en');
@@ -17,8 +37,8 @@ export default function App() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [modal, setModal] = useState<ModalState>(null);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
-  const [programmesVisible, setProgrammesVisible] = useState(false);
-  const [simToolbarOpen, setSimToolbarOpen] = useState(true);
+  const [previewMode, setPreviewMode] = useState<boolean>(hasPreviewQueryParam);
+  const [programmesPreviewOpen, setProgrammesPreviewOpen] = useState(true);
   const [simWidth, setSimWidth] = useState<SimWidth>('full');
   const [simZoom, setSimZoom] = useState<number>(1);
 
@@ -32,6 +52,8 @@ export default function App() {
   const activeCategoryId = activeView.type === 'category' ? activeView.id : null;
   const activeCategory = activeCategoryId ? dict.categories[activeCategoryId] : null;
   const backdropOpen = drawerOpen || modal !== null;
+  const hasUpcomingEvents = UPCOMING_PROGRAMMES.length > 0;
+  const programmesVisible = hasUpcomingEvents || (previewMode && programmesPreviewOpen);
 
   const currentCategoryIndex = activeCategoryId
     ? CATEGORY_ORDER.indexOf(activeCategoryId)
@@ -112,28 +134,50 @@ export default function App() {
     []
   );
 
+  const exitPreviewMode = useCallback(() => {
+    setPreviewMode(false);
+    setProgrammesPreviewOpen(true);
+    setSimWidth('full');
+    setSimZoom(1);
+    clearPreviewQueryParam();
+  }, []);
+
+  const togglePreviewMode = useCallback(() => {
+    setPreviewMode((prev) => {
+      if (prev) {
+        setProgrammesPreviewOpen(true);
+        setSimWidth('full');
+        setSimZoom(1);
+        clearPreviewQueryParam();
+        return false;
+      }
+      setProgrammesPreviewOpen(true);
+      return true;
+    });
+  }, []);
+
   // Sync body classes and .site-shell dimensions for screen/zoom preview simulation
   useEffect(() => {
-    const isSim = simWidth !== 'full' || simZoom !== 1;
+    const isSim = previewMode && (simWidth !== 'full' || simZoom !== 1);
     document.body.classList.toggle('sim-active', isSim);
 
     const siteShell = siteShellRef.current;
     if (siteShell) {
-      siteShell.style.width = simWidth === 'full' ? '100%' : `${simWidth}px`;
+      siteShell.style.width = !previewMode || simWidth === 'full' ? '100%' : `${simWidth}px`;
       siteShell.style.maxWidth = 'none';
       siteShell.style.minHeight = '';
-      siteShell.style.transform = simZoom === 1 ? 'none' : `scale(${simZoom})`;
+      siteShell.style.transform = !previewMode || simZoom === 1 ? 'none' : `scale(${simZoom})`;
     }
 
     if (isFront) {
       const rafId = requestAnimationFrame(fitIntroLines);
       return () => cancelAnimationFrame(rafId);
     }
-  }, [simWidth, simZoom, isFront, fitIntroLines]);
+  }, [previewMode, simWidth, simZoom, isFront, fitIntroLines]);
 
   useEffect(() => {
-    document.body.classList.toggle('sim-toolbar-open', simToolbarOpen);
-  }, [simToolbarOpen]);
+    document.body.classList.toggle('sim-toolbar-open', previewMode);
+  }, [previewMode]);
 
   // Refit hero lines on language change, returning to front page, fonts ready, or resize
   useEffect(() => {
@@ -237,19 +281,9 @@ export default function App() {
   );
 
   const handleToggleProgrammes = useCallback(() => {
-    setProgrammesVisible((prev) => !prev);
+    setProgrammesPreviewOpen((prev) => !prev);
     closeOverlays();
   }, [closeOverlays]);
-
-  const handleOpenSimToolbar = useCallback(() => {
-    setSimToolbarOpen(true);
-    closeOverlays();
-  }, [closeOverlays]);
-
-  const handleResetAndHideSim = useCallback(() => {
-    applyPreviewSim('full', 1, false);
-    setSimToolbarOpen(false);
-  }, [applyPreviewSim]);
 
   const activeLightboxPhoto =
     lightboxIndex !== null ? GALLERY_PHOTOS[lightboxIndex] ?? null : null;
@@ -272,6 +306,7 @@ export default function App() {
             programmesVisible={programmesVisible}
             programmesLabel={dict.programmes}
             onOpenProgrammes={() => openModalState({ type: 'programmes' })}
+            onTogglePreviewMode={togglePreviewMode}
           />
 
           <CategoryReader
@@ -299,6 +334,7 @@ export default function App() {
 
           <MomentsGallery
             active={isGallery}
+            isPreviewMode={previewMode}
             gallery={dict.gallery}
             backFrontLabel={dict.backFront}
             prevLabel={dict.prevCategory}
@@ -328,15 +364,20 @@ export default function App() {
           navItems={dict.nav}
           activeView={activeView}
           drawerContactLabel={dict.drawerContact}
+          previewMode={previewMode}
           toggleProgrammesLabel={dict.toggleProgrammes}
           onClose={closeOverlays}
-          onOpenSimToolbar={handleOpenSimToolbar}
           onSelectNavItem={handleSelectNavItem}
           onOpenContact={() => openModalState({ type: 'contact' })}
           onToggleProgrammes={handleToggleProgrammes}
         />
 
-        <InfoModal modal={modal} dict={dict} onClose={closeOverlays} />
+        <InfoModal
+          modal={modal}
+          dict={dict}
+          currentLang={currentLang}
+          onClose={closeOverlays}
+        />
 
         {activeLightboxPhoto && (
           <div
@@ -399,13 +440,15 @@ export default function App() {
         )}
       </div>
 
-      <SimToolbar
-        simWidth={simWidth}
-        simZoom={simZoom}
-        onSelectWidth={(w) => applyPreviewSim(w, simZoom, true)}
-        onSelectZoom={(z) => applyPreviewSim(simWidth, z, false)}
-        onResetAndHide={handleResetAndHideSim}
-      />
+      {previewMode && (
+        <SimToolbar
+          simWidth={simWidth}
+          simZoom={simZoom}
+          onSelectWidth={(w) => applyPreviewSim(w, simZoom, true)}
+          onSelectZoom={(z) => applyPreviewSim(simWidth, z, false)}
+          onResetAndHide={exitPreviewMode}
+        />
+      )}
     </>
   );
 }

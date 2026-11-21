@@ -1,7 +1,13 @@
 import { useCallback, useEffect, useRef } from 'react';
 
-export function LogoCard() {
+interface LogoCardProps {
+  onTripleClick?: () => void;
+}
+
+export function LogoCard({ onTripleClick }: LogoCardProps) {
   const svgRef = useRef<SVGSVGElement>(null);
+  const clickTimestampsRef = useRef<number[]>([]);
+  const replayTimerRef = useRef<number | null>(null);
 
   const replayLogoAnimation = useCallback(() => {
     const svg = svgRef.current;
@@ -35,8 +41,39 @@ export function LogoCard() {
     }
   }, [replayLogoAnimation]);
 
+  useEffect(() => {
+    return () => {
+      if (replayTimerRef.current !== null) {
+        window.clearTimeout(replayTimerRef.current);
+      }
+    };
+  }, []);
+
+  const handleLogoClick = useCallback(() => {
+    const now = Date.now();
+    const recent = clickTimestampsRef.current.filter((t) => now - t <= 650);
+    recent.push(now);
+    clickTimestampsRef.current = recent;
+
+    if (replayTimerRef.current !== null) {
+      window.clearTimeout(replayTimerRef.current);
+      replayTimerRef.current = null;
+    }
+
+    if (recent.length >= 3) {
+      clickTimestampsRef.current = [];
+      onTripleClick?.();
+      return;
+    }
+
+    replayTimerRef.current = window.setTimeout(() => {
+      replayTimerRef.current = null;
+      replayLogoAnimation();
+    }, 300);
+  }, [onTripleClick, replayLogoAnimation]);
+
   return (
-    <div className="logo-card-wrap" onClick={replayLogoAnimation}>
+    <div className="logo-card-wrap" onClick={handleLogoClick}>
       <svg
         ref={svgRef}
         className="logo-svg"

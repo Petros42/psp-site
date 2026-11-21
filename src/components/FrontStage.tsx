@@ -8,6 +8,7 @@ interface FrontStageProps {
   programmesVisible: boolean;
   programmesLabel: string;
   onOpenProgrammes: () => void;
+  onTogglePreviewMode: () => void;
 }
 
 export function FrontStage({
@@ -17,10 +18,11 @@ export function FrontStage({
   programmesVisible,
   programmesLabel,
   onOpenProgrammes,
+  onTogglePreviewMode,
 }: FrontStageProps) {
   return (
     <main className={`front-stage${hidden ? ' hidden' : ''}`} id="frontStage">
-      <LogoCard />
+      <LogoCard onTripleClick={onTogglePreviewMode} />
 
       {/* Verbatim Trilingual Three-Line Intro */}
       <div className="hero-lines" id="heroLines" ref={heroLinesRef} aria-live="polite">
@@ -29,20 +31,19 @@ export function FrontStage({
         ))}
       </div>
 
-      {/* Hidden-by-default Upcoming Programmes Slot */}
-      <div
-        className={`programmes-slot${programmesVisible ? ' visible' : ''}`}
-        id="programmesSlot"
-      >
-        <button
-          type="button"
-          className="programmes-pill"
-          id="programmesBtn"
-          onClick={onOpenProgrammes}
-        >
-          {programmesLabel}
-        </button>
-      </div>
+      {/* Upcoming Programmes Slot (shown when events exist or toggled in ?preview=true) */}
+      {programmesVisible && (
+        <div className="programmes-slot visible" id="programmesSlot">
+          <button
+            type="button"
+            className="programmes-pill"
+            id="programmesBtn"
+            onClick={onOpenProgrammes}
+          >
+            {programmesLabel}
+          </button>
+        </div>
+      )}
     </main>
   );
 }
