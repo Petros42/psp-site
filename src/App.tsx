@@ -143,18 +143,13 @@ export default function App() {
   }, []);
 
   const togglePreviewMode = useCallback(() => {
-    setPreviewMode((prev) => {
-      if (prev) {
-        setProgrammesPreviewOpen(true);
-        setSimWidth('full');
-        setSimZoom(1);
-        clearPreviewQueryParam();
-        return false;
-      }
+    if (previewMode) {
+      exitPreviewMode();
+    } else {
       setProgrammesPreviewOpen(true);
-      return true;
-    });
-  }, []);
+      setPreviewMode(true);
+    }
+  }, [previewMode, exitPreviewMode]);
 
   // Sync body classes and .site-shell dimensions for screen/zoom preview simulation
   useEffect(() => {

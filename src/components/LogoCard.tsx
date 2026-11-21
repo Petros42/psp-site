@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, type MouseEvent } from 'react';
 
 interface LogoCardProps {
   onTripleClick?: () => void;
@@ -49,28 +49,34 @@ export function LogoCard({ onTripleClick }: LogoCardProps) {
     };
   }, []);
 
-  const handleLogoClick = useCallback(() => {
-    const now = Date.now();
-    const recent = clickTimestampsRef.current.filter((t) => now - t <= 650);
-    recent.push(now);
-    clickTimestampsRef.current = recent;
+  const handleLogoClick = useCallback(
+    (e: MouseEvent<HTMLDivElement>) => {
+      e.preventDefault();
+      e.stopPropagation();
 
-    if (replayTimerRef.current !== null) {
-      window.clearTimeout(replayTimerRef.current);
-      replayTimerRef.current = null;
-    }
+      const now = Date.now();
+      const recent = clickTimestampsRef.current.filter((t) => now - t <= 600);
+      recent.push(now);
+      clickTimestampsRef.current = recent;
 
-    if (recent.length >= 3) {
-      clickTimestampsRef.current = [];
-      onTripleClick?.();
-      return;
-    }
+      if (replayTimerRef.current !== null) {
+        window.clearTimeout(replayTimerRef.current);
+        replayTimerRef.current = null;
+      }
 
-    replayTimerRef.current = window.setTimeout(() => {
-      replayTimerRef.current = null;
-      replayLogoAnimation();
-    }, 300);
-  }, [onTripleClick, replayLogoAnimation]);
+      if (recent.length >= 3) {
+        clickTimestampsRef.current = [];
+        onTripleClick?.();
+        return;
+      }
+
+      replayTimerRef.current = window.setTimeout(() => {
+        replayTimerRef.current = null;
+        replayLogoAnimation();
+      }, 300);
+    },
+    [onTripleClick, replayLogoAnimation]
+  );
 
   return (
     <div className="logo-card-wrap" onClick={handleLogoClick}>

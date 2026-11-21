@@ -287,6 +287,7 @@ body.sim-toolbar-open:not(.sim-active) .site-shell {
   cursor: pointer;
   user-select: none;
   -webkit-user-select: none;
+  touch-action: manipulation;
 }
 
 @media (min-width: 768px) {
