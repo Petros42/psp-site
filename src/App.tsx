@@ -12,17 +12,27 @@ import { GALLERY_PHOTOS } from './data/gallery';
 import { UPCOMING_PROGRAMMES } from './data/programmes';
 import type { ActiveView, CategoryId, Language, ModalState, NavItem, SimWidth } from './types';
 
-function hasPreviewQueryParam(): boolean {
+function hasPreviewInUrl(): boolean {
   if (typeof window === 'undefined') return false;
-  return new URLSearchParams(window.location.search).get('preview') === 'true';
+  const hashMatches = window.location.hash.toLowerCase() === '#preview';
+  const queryMatches = new URLSearchParams(window.location.search).get('preview') === 'true';
+  return hashMatches || queryMatches;
 }
 
-function clearPreviewQueryParam(): void {
+function clearPreviewFromUrl(): void {
   if (typeof window === 'undefined') return;
   try {
     const url = new URL(window.location.href);
+    let changed = false;
     if (url.searchParams.has('preview')) {
       url.searchParams.delete('preview');
+      changed = true;
+    }
+    if (url.hash.toLowerCase() === '#preview') {
+      url.hash = '';
+      changed = true;
+    }
+    if (changed) {
       const nextUrl = `${url.pathname}${url.search}${url.hash}`;
       window.history.replaceState({}, '', nextUrl);
     }
@@ -37,14 +47,14 @@ export default function App() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [modal, setModal] = useState<ModalState>(null);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
-  const [previewMode, setPreviewMode] = useState<boolean>(hasPreviewQueryParam);
-  const [programmesPreviewOpen, setProgrammesPreviewOpen] = useState(true);
+  const [isPreviewMode, setIsPreviewMode] = useState<boolean>(hasPreviewInUrl);
   const [simWidth, setSimWidth] = useState<SimWidth>('full');
   const [simZoom, setSimZoom] = useState<number>(1);
 
   const siteShellRef = useRef<HTMLDivElement>(null);
   const siteScrollRef = useRef<HTMLDivElement>(null);
   const heroLinesRef = useRef<HTMLDivElement>(null);
+  const previewTapTimestampsRef = useRef<number[]>([]);
 
   const dict = content[currentLang];
   const isFront = activeView.type === 'front';
@@ -52,8 +62,7 @@ export default function App() {
   const activeCategoryId = activeView.type === 'category' ? activeView.id : null;
   const activeCategory = activeCategoryId ? dict.categories[activeCategoryId] : null;
   const backdropOpen = drawerOpen || modal !== null;
-  const hasUpcomingEvents = UPCOMING_PROGRAMMES.length > 0;
-  const programmesVisible = hasUpcomingEvents || (previewMode && programmesPreviewOpen);
+  const programmesVisible = UPCOMING_PROGRAMMES.length > 0 || isPreviewMode;
 
   const currentCategoryIndex = activeCategoryId
     ? CATEGORY_ORDER.indexOf(activeCategoryId)
@@ -135,44 +144,81 @@ export default function App() {
   );
 
   const exitPreviewMode = useCallback(() => {
-    setPreviewMode(false);
-    setProgrammesPreviewOpen(true);
+    setIsPreviewMode(false);
     setSimWidth('full');
     setSimZoom(1);
-    clearPreviewQueryParam();
+    clearPreviewFromUrl();
   }, []);
 
-  const togglePreviewMode = useCallback(() => {
-    if (previewMode) {
-      exitPreviewMode();
-    } else {
-      setProgrammesPreviewOpen(true);
-      setPreviewMode(true);
+  // Document-level pointerdown listener: 3 taps within 700ms on center logo or top-left 60x60px corner toggles preview mode
+  useEffect(() => {
+    const onPointerDown = (e: PointerEvent) => {
+      const target = e.target;
+      const hitLogo = target instanceof Element && target.closest('.logo-card-wrap') !== null;
+      const hitTopLeftCorner = e.clientX <= 60 && e.clientY <= 60;
+
+      if (!hitLogo && !hitTopLeftCorner) {
+        return;
+      }
+
+      const now = Date.now();
+      const recent = previewTapTimestampsRef.current.filter((t) => now - t <= 700);
+      recent.push(now);
+      previewTapTimestampsRef.current = recent;
+
+      if (recent.length >= 3) {
+        previewTapTimestampsRef.current = [];
+        setIsPreviewMode((prev) => !prev);
+      }
+    };
+
+    document.addEventListener('pointerdown', onPointerDown);
+    return () => document.removeEventListener('pointerdown', onPointerDown);
+  }, []);
+
+  // React to #preview hash fragment changes (preserved inside iframes)
+  useEffect(() => {
+    const onHashChange = () => {
+      if (window.location.hash.toLowerCase() === '#preview') {
+        setIsPreviewMode(true);
+      }
+    };
+
+    window.addEventListener('hashchange', onHashChange);
+    return () => window.removeEventListener('hashchange', onHashChange);
+  }, []);
+
+  // Reset simulation dimensions and URL markers cleanly whenever preview mode turns off
+  useEffect(() => {
+    if (!isPreviewMode) {
+      setSimWidth('full');
+      setSimZoom(1);
+      clearPreviewFromUrl();
     }
-  }, [previewMode, exitPreviewMode]);
+  }, [isPreviewMode]);
 
   // Sync body classes and .site-shell dimensions for screen/zoom preview simulation
   useEffect(() => {
-    const isSim = previewMode && (simWidth !== 'full' || simZoom !== 1);
+    const isSim = isPreviewMode && (simWidth !== 'full' || simZoom !== 1);
     document.body.classList.toggle('sim-active', isSim);
 
     const siteShell = siteShellRef.current;
     if (siteShell) {
-      siteShell.style.width = !previewMode || simWidth === 'full' ? '100%' : `${simWidth}px`;
+      siteShell.style.width = !isPreviewMode || simWidth === 'full' ? '100%' : `${simWidth}px`;
       siteShell.style.maxWidth = 'none';
       siteShell.style.minHeight = '';
-      siteShell.style.transform = !previewMode || simZoom === 1 ? 'none' : `scale(${simZoom})`;
+      siteShell.style.transform = !isPreviewMode || simZoom === 1 ? 'none' : `scale(${simZoom})`;
     }
 
     if (isFront) {
       const rafId = requestAnimationFrame(fitIntroLines);
       return () => cancelAnimationFrame(rafId);
     }
-  }, [previewMode, simWidth, simZoom, isFront, fitIntroLines]);
+  }, [isPreviewMode, simWidth, simZoom, isFront, fitIntroLines]);
 
   useEffect(() => {
-    document.body.classList.toggle('sim-toolbar-open', previewMode);
-  }, [previewMode]);
+    document.body.classList.toggle('sim-toolbar-open', isPreviewMode);
+  }, [isPreviewMode]);
 
   // Refit hero lines on language change, returning to front page, fonts ready, or resize
   useEffect(() => {
@@ -275,11 +321,6 @@ export default function App() {
     [closeOverlays, showFrontPage, openGallery, openCategory, openModalState]
   );
 
-  const handleToggleProgrammes = useCallback(() => {
-    setProgrammesPreviewOpen((prev) => !prev);
-    closeOverlays();
-  }, [closeOverlays]);
-
   const activeLightboxPhoto =
     lightboxIndex !== null ? GALLERY_PHOTOS[lightboxIndex] ?? null : null;
 
@@ -301,7 +342,6 @@ export default function App() {
             programmesVisible={programmesVisible}
             programmesLabel={dict.programmes}
             onOpenProgrammes={() => openModalState({ type: 'programmes' })}
-            onTogglePreviewMode={togglePreviewMode}
           />
 
           <CategoryReader
@@ -329,7 +369,7 @@ export default function App() {
 
           <MomentsGallery
             active={isGallery}
-            isPreviewMode={previewMode}
+            isPreviewMode={isPreviewMode}
             gallery={dict.gallery}
             backFrontLabel={dict.backFront}
             prevLabel={dict.prevCategory}
@@ -359,12 +399,9 @@ export default function App() {
           navItems={dict.nav}
           activeView={activeView}
           drawerContactLabel={dict.drawerContact}
-          previewMode={previewMode}
-          toggleProgrammesLabel={dict.toggleProgrammes}
           onClose={closeOverlays}
           onSelectNavItem={handleSelectNavItem}
           onOpenContact={() => openModalState({ type: 'contact' })}
-          onToggleProgrammes={handleToggleProgrammes}
         />
 
         <InfoModal
@@ -435,7 +472,7 @@ export default function App() {
         )}
       </div>
 
-      {previewMode && (
+      {isPreviewMode && (
         <SimToolbar
           simWidth={simWidth}
           simZoom={simZoom}

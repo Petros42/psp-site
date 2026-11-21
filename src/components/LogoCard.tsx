@@ -1,12 +1,8 @@
 import { useCallback, useEffect, useRef, type MouseEvent } from 'react';
 
-interface LogoCardProps {
-  onTripleClick?: () => void;
-}
-
-export function LogoCard({ onTripleClick }: LogoCardProps) {
+export function LogoCard() {
   const svgRef = useRef<SVGSVGElement>(null);
-  const clickTimestampsRef = useRef<number[]>([]);
+  const lastTapRef = useRef<number>(0);
   const replayTimerRef = useRef<number | null>(null);
 
   const replayLogoAnimation = useCallback(() => {
@@ -52,30 +48,24 @@ export function LogoCard({ onTripleClick }: LogoCardProps) {
   const handleLogoClick = useCallback(
     (e: MouseEvent<HTMLDivElement>) => {
       e.preventDefault();
-      e.stopPropagation();
 
       const now = Date.now();
-      const recent = clickTimestampsRef.current.filter((t) => now - t <= 600);
-      recent.push(now);
-      clickTimestampsRef.current = recent;
+      const isRapidFollowUp = now - lastTapRef.current <= 700;
+      lastTapRef.current = now;
 
       if (replayTimerRef.current !== null) {
         window.clearTimeout(replayTimerRef.current);
         replayTimerRef.current = null;
       }
 
-      if (recent.length >= 3) {
-        clickTimestampsRef.current = [];
-        onTripleClick?.();
-        return;
+      if (!isRapidFollowUp) {
+        replayTimerRef.current = window.setTimeout(() => {
+          replayTimerRef.current = null;
+          replayLogoAnimation();
+        }, 360);
       }
-
-      replayTimerRef.current = window.setTimeout(() => {
-        replayTimerRef.current = null;
-        replayLogoAnimation();
-      }, 300);
     },
-    [onTripleClick, replayLogoAnimation]
+    [replayLogoAnimation]
   );
 
   return (

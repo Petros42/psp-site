@@ -5,12 +5,9 @@ interface NavDrawerProps {
   navItems: NavItem[];
   activeView: ActiveView;
   drawerContactLabel: string;
-  previewMode: boolean;
-  toggleProgrammesLabel: string;
   onClose: () => void;
   onSelectNavItem: (item: NavItem) => void;
   onOpenContact: () => void;
-  onToggleProgrammes: () => void;
 }
 
 export function NavDrawer({
@@ -18,12 +15,9 @@ export function NavDrawer({
   navItems,
   activeView,
   drawerContactLabel,
-  previewMode,
-  toggleProgrammesLabel,
   onClose,
   onSelectNavItem,
   onOpenContact,
-  onToggleProgrammes,
 }: NavDrawerProps) {
   return (
     <aside
@@ -82,17 +76,6 @@ export function NavDrawer({
         >
           {drawerContactLabel}
         </button>
-
-        {previewMode && (
-          <button
-            type="button"
-            className="drawer-sub-btn"
-            id="toggleProgrammesBtn"
-            onClick={onToggleProgrammes}
-          >
-            {toggleProgrammesLabel}
-          </button>
-        )}
       </div>
     </aside>
   );

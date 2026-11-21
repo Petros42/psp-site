@@ -8,7 +8,6 @@ interface FrontStageProps {
   programmesVisible: boolean;
   programmesLabel: string;
   onOpenProgrammes: () => void;
-  onTogglePreviewMode: () => void;
 }
 
 export function FrontStage({
@@ -18,11 +17,10 @@ export function FrontStage({
   programmesVisible,
   programmesLabel,
   onOpenProgrammes,
-  onTogglePreviewMode,
 }: FrontStageProps) {
   return (
     <main className={`front-stage${hidden ? ' hidden' : ''}`} id="frontStage">
-      <LogoCard onTripleClick={onTogglePreviewMode} />
+      <LogoCard />
 
       {/* Verbatim Trilingual Three-Line Intro */}
       <div className="hero-lines" id="heroLines" ref={heroLinesRef} aria-live="polite">
