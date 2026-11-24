@@ -1,26 +1,44 @@
 interface BottomBarProps {
   contactLabel: string;
+  libraryLabel: string;
+  libraryOpen: boolean;
   privacyLabel: string;
   onOpenContact: () => void;
+  onToggleLibrary: () => void;
   onOpenPrivacy: () => void;
 }
 
 export function BottomBar({
   contactLabel,
+  libraryLabel,
+  libraryOpen,
   privacyLabel,
   onOpenContact,
+  onToggleLibrary,
   onOpenPrivacy,
 }: BottomBarProps) {
   return (
     <footer className="bottom-bar">
-      <button
-        type="button"
-        className="footer-pill"
-        id="contactBtn"
-        onClick={onOpenContact}
-      >
-        {contactLabel}
-      </button>
+      <div className="footer-left-group">
+        <button
+          type="button"
+          className="footer-pill"
+          id="contactBtn"
+          onClick={onOpenContact}
+        >
+          {contactLabel}
+        </button>
+        <button
+          type="button"
+          className={`footer-pill${libraryOpen ? ' active' : ''}`}
+          id="libraryBtn"
+          aria-expanded={libraryOpen}
+          aria-controls="libraryPopover"
+          onClick={onToggleLibrary}
+        >
+          {libraryLabel}
+        </button>
+      </div>
 
       <div className="social-links" aria-label="Social channels">
         <a

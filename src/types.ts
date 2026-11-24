@@ -63,6 +63,13 @@ export interface LocaleContent {
   prevCategory: string;
   nextCategory: string;
   contactLabel: string;
+  libraryLabel: string;
+  libraryTitle: string;
+  libraryComingSoon: string;
+  extrasTextsTab: string;
+  extrasVideosTab: string;
+  backToExtras: string;
+  openPdfExternal: string;
   privacyLabel: string;
   lines: string[];
   programmes: string;

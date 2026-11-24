@@ -1,0 +1,2 @@
+# Place PSP PDF files here (e.g. excerpt-1.pdf, excerpt-2.pdf, programme-outline.pdf)
+# Reference them in src/data/library.ts as "/pdfs/excerpt-1.pdf"
