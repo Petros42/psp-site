@@ -36,7 +36,7 @@ export const content: Record<Language, LocaleContent> = {
     copyLabel: "Copy",
     copiedLabel: "Copied",
     privacyTitle: "Privacy & Data Protection",
-    privacyBody: "PSP respects your privacy. This website does not use invasive tracking cookies or sell personal data. Any information shared via direct email correspondence is used solely to respond to your inquiry.",
+    privacyBody: "PSP respects your privacy. This website does not use invasive tracking cookies or sell personal data. Embedded external videos load in privacy-enhanced mode only when you choose to play them. Any information shared via direct email correspondence is used solely to respond to your inquiry.",
     categories: {
       nature: {
         title: "1. The Nature of PSP",
@@ -529,7 +529,7 @@ export const content: Record<Language, LocaleContent> = {
     copyLabel: "Αντιγραφή",
     copiedLabel: "Αντιγράφηκε",
     privacyTitle: "Απόρρητο & Προστασία Δεδομένων",
-    privacyBody: "Η PSP σέβεται το απόρρητό σας. Ο ιστότοπος αυτός δεν χρησιμοποιεί παρεμβατικά cookies παρακολούθησης ούτε διαβιβάζει προσωπικά δεδομένα.",
+    privacyBody: "Η PSP σέβεται το απόρρητό σας. Ο ιστότοπος αυτός δεν χρησιμοποιεί παρεμβατικά cookies παρακολούθησης ούτε διαβιβάζει προσωπικά δεδομένα. Τα ενσωματωμένα εξωτερικά βίντεο φορτώνουν σε λειτουργία αυξημένου απορρήτου μόνο όταν επιλέξετε να τα αναπαραγάγετε.",
     categories: {
       nature: {
         title: "1. Η φύση της PSP",
@@ -1021,7 +1021,7 @@ export const content: Record<Language, LocaleContent> = {
     copyLabel: "Копировать",
     copiedLabel: "Скопировано",
     privacyTitle: "Конфиденциальность и защита данных",
-    privacyBody: "PSP уважает вашу конфиденциальность. Этот сайт не использует навязчивые отслеживающие файлы cookie и не передаёт персональные данные третьим лицам.",
+    privacyBody: "PSP уважает вашу конфиденциальность. Этот сайт не использует навязчивые отслеживающие файлы cookie и не передаёт персональные данные третьим лицам. Встроенные внешние видео загружаются в режиме повышенной конфиденциальности только после того, как вы сами нажмёте «воспроизвести».",
     categories: {
       nature: {
         title: "1. Природа PSP",

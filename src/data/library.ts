@@ -26,18 +26,18 @@ export const LIBRARY_ITEMS: LibraryItem[] = [
     url: '/pdfs/PSPsc-BOOK%20A-Reflections%20on%20the%20miracle%20of%20human%20experiencing-EXTRAS.pdf',
     tag: {
       en: 'Book A · PDF',
-      el: 'Book A · PDF (EN)',
-      ru: 'Book A · PDF (EN)',
+      el: 'Book A · PDF',
+      ru: 'Book A · PDF',
     },
     title: {
       en: 'Reflections on the Miracle of Human Experiencing',
-      el: 'Reflections on the Miracle of Human Experiencing',
-      ru: 'Reflections on the Miracle of Human Experiencing',
+      el: 'Reflections on the Miracle of Human Experiencing (μόνο αγγλικά)',
+      ru: 'Reflections on the Miracle of Human Experiencing (только на английском)',
     },
     subtitle: {
       en: 'Contents. A conceptual map of the book. Preface.',
-      el: 'Περιεχόμενα. Εννοιολογικός χάρτης του βιβλίου. Πρόλογος.',
-      ru: 'Содержание. Концептуальная карта книги. Предисловие.',
+      el: 'Contents. A conceptual map of the book. Preface.',
+      ru: 'Contents. A conceptual map of the book. Preface.',
     },
   },
   {
@@ -46,18 +46,18 @@ export const LIBRARY_ITEMS: LibraryItem[] = [
     url: '/pdfs/PSPsc-BOOK%20C-Pathways%20into%20the%20Dynamics%20of%20Lived%20Experience-EXTRAS.pdf',
     tag: {
       en: 'Book C · PDF',
-      el: 'Book C · PDF (EN)',
-      ru: 'Book C · PDF (EN)',
+      el: 'Book C · PDF',
+      ru: 'Book C · PDF',
     },
     title: {
       en: 'Pathways into the Dynamics of Lived Experience',
-      el: 'Pathways into the Dynamics of Lived Experience',
-      ru: 'Pathways into the Dynamics of Lived Experience',
+      el: 'Pathways into the Dynamics of Lived Experience (μόνο αγγλικά)',
+      ru: 'Pathways into the Dynamics of Lived Experience (только на английском)',
     },
     subtitle: {
       en: 'Contents. Preface. Excerpts.',
-      el: 'Περιεχόμενα. Πρόλογος. Αποσπάσματα.',
-      ru: 'Содержание. Предисловие. Отрывки.',
+      el: 'Contents. Preface. Excerpts.',
+      ru: 'Contents. Preface. Excerpts.',
     },
   },
   {
@@ -66,18 +66,18 @@ export const LIBRARY_ITEMS: LibraryItem[] = [
     url: '/pdfs/PSPsc-bkl%20IV-Structure%20of%20the%20FULL%20PSP%20training%20framework-EXTRAS.pdf',
     tag: {
       en: 'Booklet IV · PDF',
-      el: 'Booklet IV · PDF (EN)',
-      ru: 'Booklet IV · PDF (EN)',
+      el: 'Booklet IV · PDF',
+      ru: 'Booklet IV · PDF',
     },
     title: {
       en: 'Structure of the Full PSP Training Framework',
-      el: 'Structure of the Full PSP Training Framework',
-      ru: 'Structure of the Full PSP Training Framework',
+      el: 'Structure of the Full PSP Training Framework (μόνο αγγλικά)',
+      ru: 'Structure of the Full PSP Training Framework (только на английском)',
     },
     subtitle: {
       en: 'Introductions to all training levels. Compact schedules of the Basic Programme.',
-      el: 'Εισαγωγές σε όλα τα επίπεδα εκπαίδευσης. Συνοπτικά προγράμματα του Βασικού Προγράμματος.',
-      ru: 'Введение ко всем уровням обучения. Краткие расписания Базовой программы.',
+      el: 'Introductions to all training levels. Compact schedules of the Basic Programme.',
+      ru: 'Introductions to all training levels. Compact schedules of the Basic Programme.',
     },
   },
   {
@@ -86,18 +86,18 @@ export const LIBRARY_ITEMS: LibraryItem[] = [
     url: '/pdfs/PSPsc-bkl%20IV-A%20Navigation%20and%20Quick%20Reference%20Guide-BASIC%20PROGRAMME-EXTRAS.pdf',
     tag: {
       en: 'Booklet IV · PDF',
-      el: 'Booklet IV · PDF (EN)',
-      ru: 'Booklet IV · PDF (EN)',
+      el: 'Booklet IV · PDF',
+      ru: 'Booklet IV · PDF',
     },
     title: {
       en: 'A Navigation & Quick Reference Guide to the Basic Programme',
-      el: 'A Navigation & Quick Reference Guide to the Basic Programme',
-      ru: 'A Navigation & Quick Reference Guide to the Basic Programme',
+      el: 'A Navigation & Quick Reference Guide to the Basic Programme (μόνο αγγλικά)',
+      ru: 'A Navigation & Quick Reference Guide to the Basic Programme (только на английском)',
     },
     subtitle: {
       en: 'Lists of time slots for all nine days — per day and per category.',
-      el: 'Πίνακες χρονικών ενοτήτων για όλες τις εννέα ημέρες — ανά ημέρα και ανά κατηγορία.',
-      ru: 'Списки временных блоков на все девять дней — по дням и по категориям.',
+      el: 'Lists of time slots for all nine days — per day and per category.',
+      ru: 'Lists of time slots for all nine days — per day and per category.',
     },
   },
   {
