@@ -68,6 +68,10 @@ export interface LocaleContent {
   libraryComingSoon: string;
   extrasTextsTab: string;
   extrasVideosTab: string;
+  extrasPdfsButton: string;
+  extrasVideosButton: string;
+  extrasPdfsTitle: string;
+  extrasVideosTitle: string;
   backToExtras: string;
   openPdfExternal: string;
   privacyLabel: string;

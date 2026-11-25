@@ -2,39 +2,51 @@ import { LIBRARY_ITEMS, type LibraryItem, type LibraryItemKind } from '../data/l
 import type { Language } from '../types';
 
 interface LibraryPopoverProps {
-  open: boolean;
-  activeTab: LibraryItemKind;
+  openKind: LibraryItemKind | null;
   currentLang: Language;
-  title: string;
-  textsTabLabel: string;
-  videosTabLabel: string;
+  pdfsTitle: string;
+  videosTitle: string;
   comingSoonLabel: string;
-  onSelectTab: (tab: LibraryItemKind) => void;
   onClose: () => void;
   onOpenVideo: (item: LibraryItem) => void;
   onOpenPdf: (item: LibraryItem) => void;
 }
 
-function ItemIcon({ kind }: { kind: LibraryItemKind }) {
-  if (kind === 'video') {
-    return (
-      <svg
-        width="16"
-        height="16"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        aria-hidden="true"
-      >
-        <rect x="2" y="5" width="20" height="14" rx="3.5" />
-        <polygon points="10 9 15 12 10 15 10 9" fill="currentColor" stroke="none" />
-      </svg>
-    );
-  }
+const YOUTUBE_ID_PATTERN = /^[A-Za-z0-9_-]{11}$/;
 
+function getYouTubeThumbnailUrl(rawUrl: string): string | null {
+  try {
+    const parsed = new URL(rawUrl);
+    const host = parsed.hostname.replace(/^www\./, '').toLowerCase();
+    let videoId: string | null = null;
+
+    if (host === 'youtu.be') {
+      videoId = parsed.pathname.split('/').filter(Boolean)[0] ?? null;
+    } else if (
+      host === 'youtube.com' ||
+      host === 'm.youtube.com' ||
+      host === 'youtube-nocookie.com'
+    ) {
+      if (parsed.pathname === '/watch') {
+        videoId = parsed.searchParams.get('v');
+      } else {
+        const parts = parsed.pathname.split('/').filter(Boolean);
+        if (parts[0] === 'embed' || parts[0] === 'shorts') {
+          videoId = parts[1] ?? null;
+        }
+      }
+    }
+
+    if (videoId && YOUTUBE_ID_PATTERN.test(videoId)) {
+      return `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
+    }
+  } catch {
+    // Not a YouTube URL
+  }
+  return null;
+}
+
+function PdfIcon() {
   return (
     <svg
       width="16"
@@ -55,31 +67,48 @@ function ItemIcon({ kind }: { kind: LibraryItemKind }) {
   );
 }
 
+function VideoPlayEmblem() {
+  return (
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      aria-hidden="true"
+    >
+      <polygon points="8 5 19 12 8 19 8 5" />
+    </svg>
+  );
+}
+
 export function LibraryPopover({
-  open,
-  activeTab,
+  openKind,
   currentLang,
-  title,
-  textsTabLabel,
-  videosTabLabel,
+  pdfsTitle,
+  videosTitle,
   comingSoonLabel,
-  onSelectTab,
   onClose,
   onOpenVideo,
   onOpenPdf,
 }: LibraryPopoverProps) {
-  const pdfItems = LIBRARY_ITEMS.filter((item) => item.kind === 'pdf');
-  const videoItems = LIBRARY_ITEMS.filter((item) => item.kind === 'video');
-  const visibleItems = activeTab === 'pdf' ? pdfItems : videoItems;
+  const isOpen = openKind !== null;
+  const activeKind: LibraryItemKind = openKind ?? 'pdf';
+  const isVideoView = activeKind === 'video';
+  const title = isVideoView ? videosTitle : pdfsTitle;
+  const visibleItems = LIBRARY_ITEMS.filter(
+    (item) =>
+      item.kind === activeKind &&
+      (!item.languages || item.languages.includes(currentLang))
+  );
 
   return (
     <div
-      className={`library-popover${open ? ' open' : ''}`}
+      className={`library-popover${isVideoView ? ' library-popover--videos' : ''}${isOpen ? ' open' : ''}`}
       id="libraryPopover"
       role="dialog"
       aria-modal="true"
       aria-label={title}
-      aria-hidden={!open}
+      aria-hidden={!isOpen}
     >
       <div className="library-popover-header">
         <h2 className="library-popover-title">{title}</h2>
@@ -94,81 +123,121 @@ export function LibraryPopover({
         </button>
       </div>
 
-      <div className="library-tabs" role="tablist" aria-label={title}>
-        <button
-          type="button"
-          role="tab"
-          aria-selected={activeTab === 'pdf'}
-          className={`library-tab-btn${activeTab === 'pdf' ? ' active' : ''}`}
-          onClick={() => onSelectTab('pdf')}
-        >
-          <span>{textsTabLabel}</span>
-          <span className="library-tab-count">{pdfItems.length}</span>
-        </button>
-        <button
-          type="button"
-          role="tab"
-          aria-selected={activeTab === 'video'}
-          className={`library-tab-btn${activeTab === 'video' ? ' active' : ''}`}
-          onClick={() => onSelectTab('video')}
-        >
-          <span>{videosTabLabel}</span>
-          <span className="library-tab-count">{videoItems.length}</span>
-        </button>
-      </div>
+      {isVideoView ? (
+        <ul className="library-video-grid">
+          {visibleItems.map((item) => {
+            const hasUrl = item.url.trim().length > 0;
+            const itemTitle = item.title[currentLang];
+            const itemSubtitle = item.subtitle[currentLang];
+            const thumbSrc = item.thumbnail?.trim() || (hasUrl ? getYouTubeThumbnailUrl(item.url.trim()) : null);
 
-      <ul className="library-item-list" role="tabpanel">
-        {visibleItems.map((item) => {
-          const hasUrl = item.url.trim().length > 0;
-          const itemTag = item.tag?.[currentLang];
-          const itemTitle = item.title[currentLang];
-          const itemSubtitle = item.subtitle[currentLang];
+            const cardBody = (
+              <>
+                <div className="library-video-thumb">
+                  {isOpen && thumbSrc ? (
+                    <img
+                      src={thumbSrc}
+                      alt=""
+                      className="library-video-thumb-img"
+                      style={item.thumbnailPosition ? { objectPosition: item.thumbnailPosition } : undefined}
+                      loading="lazy"
+                    />
+                  ) : isOpen && hasUrl ? (
+                    <video
+                      src={`${item.url.trim()}#t=2`}
+                      muted
+                      playsInline
+                      preload="metadata"
+                      className="library-video-thumb-img"
+                      aria-hidden="true"
+                    />
+                  ) : (
+                    <div className="library-video-thumb-placeholder" aria-hidden="true" />
+                  )}
+                  <span className={`library-video-play-badge${hasUrl ? '' : ' is-pending'}`} aria-hidden="true">
+                    <VideoPlayEmblem />
+                  </span>
+                  {!hasUrl && <span className="library-video-soon-pill">{comingSoonLabel}</span>}
+                </div>
 
-          const inner = (
-            <>
-              <span className="library-item-icon">
-                <ItemIcon kind={item.kind} />
-              </span>
-              <span className="library-item-copy">
-                {itemTag && <span className="library-item-tag">{itemTag}</span>}
-                <span className="library-item-title">{itemTitle}</span>
-                <span className="library-item-subtitle">{itemSubtitle}</span>
-              </span>
-              {hasUrl ? (
-                <span className="library-item-arrow" aria-hidden="true">
-                  {item.kind === 'video' ? '▶' : '›'}
-                </span>
-              ) : (
-                <span className="library-item-status">{comingSoonLabel}</span>
-              )}
-            </>
-          );
+                <div className="library-video-copy">
+                  <span className="library-item-title">{itemTitle}</span>
+                  <span className="library-item-subtitle">{itemSubtitle}</span>
+                </div>
+              </>
+            );
 
-          if (hasUrl) {
             return (
               <li key={item.id}>
-                <button
-                  type="button"
-                  className="library-item-row library-item-btn"
-                  onClick={() =>
-                    item.kind === 'video' ? onOpenVideo(item) : onOpenPdf(item)
-                  }
-                >
-                  {inner}
-                </button>
+                {hasUrl ? (
+                  <button
+                    type="button"
+                    className="library-video-card library-video-card--interactive"
+                    onClick={() => onOpenVideo(item)}
+                  >
+                    {cardBody}
+                  </button>
+                ) : (
+                  <div className="library-video-card library-video-card--pending" aria-disabled="true">
+                    {cardBody}
+                  </div>
+                )}
               </li>
             );
-          }
+          })}
+        </ul>
+      ) : (
+        <ul className="library-item-list">
+          {visibleItems.map((item) => {
+            const hasUrl = item.url.trim().length > 0;
+            const itemTag = item.tag?.[currentLang];
+            const itemTitle = item.title[currentLang];
+            const itemSubtitle = item.subtitle[currentLang];
 
-          return (
-            <li key={item.id}>
-              <div className="library-item-row library-item-row--pending" aria-disabled="true">
-                {inner}
-              </div>
-            </li>
-          );
-        })}
-      </ul>
+            const inner = (
+              <>
+                <span className="library-item-icon">
+                  <PdfIcon />
+                </span>
+                <span className="library-item-copy">
+                  {itemTag && <span className="library-item-tag">{itemTag}</span>}
+                  <span className="library-item-title">{itemTitle}</span>
+                  <span className="library-item-subtitle">{itemSubtitle}</span>
+                </span>
+                {hasUrl ? (
+                  <span className="library-item-arrow" aria-hidden="true">
+                    ›
+                  </span>
+                ) : (
+                  <span className="library-item-status">{comingSoonLabel}</span>
+                )}
+              </>
+            );
+
+            if (hasUrl) {
+              return (
+                <li key={item.id}>
+                  <button
+                    type="button"
+                    className="library-item-row library-item-btn"
+                    onClick={() => onOpenPdf(item)}
+                  >
+                    {inner}
+                  </button>
+                </li>
+              );
+            }
+
+            return (
+              <li key={item.id}>
+                <div className="library-item-row library-item-row--pending" aria-disabled="true">
+                  {inner}
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      )}
 
       <div className="library-popover-footer">
         <button

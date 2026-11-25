@@ -50,8 +50,7 @@ export default function App() {
   const [activeView, setActiveView] = useState<ActiveView>({ type: 'front' });
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [modal, setModal] = useState<ModalState>(null);
-  const [libraryOpen, setLibraryOpen] = useState(false);
-  const [libraryTab, setLibraryTab] = useState<LibraryItemKind>('pdf');
+  const [openExtrasKind, setOpenExtrasKind] = useState<LibraryItemKind | null>(null);
   const [activeVideo, setActiveVideo] = useState<LibraryItem | null>(null);
   const [activePdf, setActivePdf] = useState<LibraryItem | null>(null);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
@@ -65,13 +64,14 @@ export default function App() {
   const siteScrollRef = useRef<HTMLDivElement>(null);
   const heroLinesRef = useRef<HTMLDivElement>(null);
   const logoTapTimestampsRef = useRef<number[]>([]);
+  const lastExtrasKindRef = useRef<LibraryItemKind>('pdf');
 
   const dict = content[currentLang];
   const isFront = activeView.type === 'front';
   const isGallery = activeView.type === 'gallery';
   const activeCategoryId = activeView.type === 'category' ? activeView.id : null;
   const activeCategory = activeCategoryId ? dict.categories[activeCategoryId] : null;
-  const backdropOpen = drawerOpen || modal !== null || libraryOpen;
+  const backdropOpen = drawerOpen || modal !== null || openExtrasKind !== null;
   const programmesVisible = UPCOMING_PROGRAMMES.length > 0 || programmesToggled;
 
   const currentCategoryIndex = activeCategoryId
@@ -287,22 +287,22 @@ export default function App() {
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [lightboxIndex]);
 
-  // Close library popover on Escape
+  // Close extras popover on Escape
   useEffect(() => {
-    if (!libraryOpen) return;
+    if (!openExtrasKind) return;
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        setLibraryOpen(false);
+        setOpenExtrasKind(null);
       }
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [libraryOpen]);
+  }, [openExtrasKind]);
 
   const closeOverlays = useCallback(() => {
     setDrawerOpen(false);
     setModal(null);
-    setLibraryOpen(false);
+    setOpenExtrasKind(null);
     setActiveVideo(null);
     setActivePdf(null);
     setLightboxIndex(null);
@@ -310,7 +310,7 @@ export default function App() {
 
   const openDrawer = useCallback(() => {
     setModal(null);
-    setLibraryOpen(false);
+    setOpenExtrasKind(null);
     setActiveVideo(null);
     setActivePdf(null);
     setLightboxIndex(null);
@@ -319,46 +319,47 @@ export default function App() {
 
   const openModalState = useCallback((nextModal: Exclude<ModalState, null>) => {
     setDrawerOpen(false);
-    setLibraryOpen(false);
+    setOpenExtrasKind(null);
     setActiveVideo(null);
     setActivePdf(null);
     setLightboxIndex(null);
     setModal(nextModal);
   }, []);
 
-  const toggleLibrary = useCallback(() => {
+  const toggleExtras = useCallback((kind: LibraryItemKind) => {
     setDrawerOpen(false);
     setModal(null);
     setActiveVideo(null);
     setActivePdf(null);
     setLightboxIndex(null);
-    setLibraryOpen((prev) => !prev);
+    lastExtrasKindRef.current = kind;
+    setOpenExtrasKind((prev) => (prev === kind ? null : kind));
   }, []);
 
   const openVideo = useCallback((item: LibraryItem) => {
     setDrawerOpen(false);
     setModal(null);
-    setLibraryOpen(false);
+    setOpenExtrasKind(null);
     setActivePdf(null);
     setLightboxIndex(null);
-    setLibraryTab('video');
+    lastExtrasKindRef.current = 'video';
     setActiveVideo(item);
   }, []);
 
   const openPdf = useCallback((item: LibraryItem) => {
     setDrawerOpen(false);
     setModal(null);
-    setLibraryOpen(false);
+    setOpenExtrasKind(null);
     setActiveVideo(null);
     setLightboxIndex(null);
-    setLibraryTab('pdf');
+    lastExtrasKindRef.current = 'pdf';
     setActivePdf(item);
   }, []);
 
   const returnToExtras = useCallback(() => {
     setActiveVideo(null);
     setActivePdf(null);
-    setLibraryOpen(true);
+    setOpenExtrasKind(lastExtrasKindRef.current);
   }, []);
 
   const scrollToTop = useCallback(() => {
@@ -460,11 +461,13 @@ export default function App() {
 
           <BottomBar
             contactLabel={dict.contactLabel}
-            libraryLabel={dict.libraryLabel}
-            libraryOpen={libraryOpen}
+            extrasPrefixLabel={dict.libraryLabel}
+            extrasPdfsLabel={dict.extrasPdfsButton}
+            extrasVideosLabel={dict.extrasVideosButton}
+            openExtrasKind={openExtrasKind}
             privacyLabel={dict.privacyLabel}
             onOpenContact={() => openModalState({ type: 'contact' })}
-            onToggleLibrary={toggleLibrary}
+            onToggleExtras={toggleExtras}
             onOpenPrivacy={() => openModalState({ type: 'privacy' })}
           />
         </div>
@@ -500,14 +503,11 @@ export default function App() {
         />
 
         <LibraryPopover
-          open={libraryOpen}
-          activeTab={libraryTab}
+          openKind={openExtrasKind}
           currentLang={currentLang}
-          title={dict.libraryTitle}
-          textsTabLabel={dict.extrasTextsTab}
-          videosTabLabel={dict.extrasVideosTab}
+          pdfsTitle={dict.extrasPdfsTitle}
+          videosTitle={dict.extrasVideosTitle}
           comingSoonLabel={dict.libraryComingSoon}
-          onSelectTab={setLibraryTab}
           onClose={closeOverlays}
           onOpenVideo={openVideo}
           onOpenPdf={openPdf}

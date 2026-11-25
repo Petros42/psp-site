@@ -859,8 +859,8 @@ body.sim-toolbar-open:not(.sim-active) .site-shell {
    ========================================================================== */
 .bottom-bar {
   width: 100%;
-  min-height: 50px;
-  padding: 0 14px;
+  min-height: 56px;
+  padding: 6px 14px;
   background-color: var(--bg-bar);
   border-top: 1px solid var(--border-hairline);
   display: flex;
@@ -868,12 +868,22 @@ body.sim-toolbar-open:not(.sim-active) .site-shell {
   justify-content: space-between;
   gap: 8px;
   z-index: 20;
+  container-type: inline-size;
+  container-name: footer;
 }
 
 .footer-left-group {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  flex-shrink: 0;
+}
+
+.footer-right-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
   flex-shrink: 0;
 }
 
@@ -889,6 +899,31 @@ body.sim-toolbar-open:not(.sim-active) .site-shell {
   white-space: nowrap;
   cursor: pointer;
   transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.footer-pill--stacked {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  padding: 3px 10px 4px;
+  line-height: 1.08;
+  gap: 1px;
+}
+
+.footer-pill-kicker {
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  text-transform: lowercase;
+  color: var(--text-muted);
+}
+
+.footer-pill-main {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  color: var(--text-main);
 }
 
 .footer-pill:hover,
@@ -1150,8 +1185,8 @@ body.sim-toolbar-open:not(.sim-active) .site-shell {
 .library-popover {
   position: fixed;
   left: 14px;
-  bottom: 60px;
-  width: min(376px, calc(100% - 28px));
+  bottom: 66px;
+  width: min(390px, calc(100% - 28px));
   max-height: min(76vh, 560px);
   display: flex;
   flex-direction: column;
@@ -1169,6 +1204,10 @@ body.sim-toolbar-open:not(.sim-active) .site-shell {
   z-index: 60;
 }
 
+.library-popover--videos {
+  width: min(640px, calc(100% - 28px));
+}
+
 .library-popover.open {
   opacity: 1;
   pointer-events: auto;
@@ -1176,7 +1215,7 @@ body.sim-toolbar-open:not(.sim-active) .site-shell {
 }
 
 body.sim-toolbar-open:not(.sim-active) .library-popover {
-  bottom: 148px;
+  bottom: 154px;
 }
 
 .library-popover-header {
@@ -1349,44 +1388,207 @@ button.library-item-btn:hover {
   flex-shrink: 0;
 }
 
-@media (max-width: 460px) {
-  .bottom-bar {
-    padding: 6px 10px;
-    gap: 6px;
-    flex-wrap: wrap;
-  }
+/* Two-column Videos grid with 16:9 thumbnail + full title & legend space */
+.library-video-grid {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  overflow-y: auto;
+  min-height: 0;
+  flex: 1 1 auto;
+  padding-bottom: 2px;
+}
 
-  .footer-pill {
-    padding: 4px 9px;
-    font-size: 11px;
-  }
+.library-video-card {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-bar);
+  border: 1px solid rgba(13, 12, 11, 0.16);
+  border-radius: 12px;
+  overflow: hidden;
+  color: var(--text-main);
+  text-align: left;
+  transition: background 0.18s ease, border-color 0.18s ease;
+}
 
-  .footer-link {
-    font-size: 11px;
-  }
+.library-video-card--interactive {
+  cursor: pointer;
+}
 
-  .social-links {
+.library-video-card--interactive:hover {
+  background: #DECBB8;
+  border-color: rgba(13, 12, 11, 0.32);
+}
+
+.library-video-card--pending {
+  cursor: default;
+}
+
+.library-video-thumb {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #23201D;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.library-video-thumb-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  pointer-events: none;
+}
+
+.library-video-thumb-placeholder {
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at 50% 45%, #3B3530 0%, #1D1B19 100%);
+}
+
+.library-video-play-badge {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: rgba(242, 230, 218, 0.92);
+  color: #161514;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.28);
+}
+
+.library-video-play-badge.is-pending {
+  opacity: 0.72;
+}
+
+.library-video-soon-pill {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  background: rgba(13, 12, 11, 0.72);
+  color: #F2E6DA;
+  font-family: 'Inter', sans-serif;
+  font-size: 9.5px;
+  letter-spacing: 0.05em;
+  padding: 2px 7px;
+  border-radius: 999px;
+}
+
+.library-video-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 10px 11px 12px;
+}
+
+@container footer (max-width: 480px) {
+  .footer-left-group {
     gap: 4px;
   }
 
+  .footer-right-group {
+    gap: 4px;
+    min-width: 0;
+  }
+
+  .footer-pill {
+    padding: 4px 8px;
+    font-size: 10.5px;
+    letter-spacing: 0.02em;
+  }
+
+  .footer-pill--stacked {
+    padding: 2px 7px 3px;
+  }
+
+  .footer-pill-kicker {
+    font-size: 8px;
+  }
+
+  .footer-pill-main {
+    font-size: 10px;
+  }
+
+  .footer-link {
+    font-size: 10.5px;
+    letter-spacing: 0.01em;
+    padding: 4px 2px;
+    white-space: nowrap;
+  }
+
+  .social-links {
+    gap: 2px;
+  }
+
   .social-link {
-    width: 24px;
-    height: 24px;
+    width: 22px;
+    height: 22px;
   }
 }
 
-@media (min-width: 640px) {
+@media (max-width: 480px) {
   .bottom-bar {
-    padding: 0 18px;
+    padding: 5px 8px;
+    gap: 4px;
   }
 
+  .library-video-grid {
+    gap: 8px;
+  }
+
+  .library-video-copy {
+    padding: 8px 9px 10px;
+  }
+
+  .library-video-card .library-item-title {
+    font-size: 14.5px;
+  }
+
+  .library-video-card .library-item-subtitle {
+    font-size: 11.5px;
+  }
+}
+
+body.sim-active .bottom-bar {
+  padding: 5px 8px;
+  gap: 4px;
+}
+
+@media (max-width: 340px) {
+  .bottom-bar {
+    flex-wrap: wrap;
+  }
+
+  .library-video-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@container footer (min-width: 640px) {
   .footer-left-group {
     gap: 8px;
+  }
+
+  .footer-right-group {
+    gap: 18px;
   }
 
   .footer-pill {
     padding: 5px 13px;
     font-size: 12px;
+  }
+
+  .footer-pill--stacked {
+    padding: 4px 12px 5px;
   }
 
   .social-links {

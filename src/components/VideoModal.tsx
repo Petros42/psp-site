@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import type { LibraryItem } from '../data/library';
 import type { Language } from '../types';
 
@@ -32,7 +32,11 @@ function getYouTubeEmbedUrl(rawUrl: string): string | null {
     }
 
     if (videoId && YOUTUBE_ID_PATTERN.test(videoId)) {
-      return `https://www.youtube-nocookie.com/embed/${videoId}?rel=0&modestbranding=1&autoplay=1`;
+      const originParam =
+        typeof window !== 'undefined' && window.location.origin
+          ? `&origin=${encodeURIComponent(window.location.origin)}`
+          : '';
+      return `https://www.youtube-nocookie.com/embed/${videoId}?rel=0&modestbranding=1&autoplay=1&enablejsapi=1${originParam}`;
     }
   } catch {
     // Not a full URL (e.g., local /videos/... path)
@@ -60,24 +64,75 @@ export function VideoModal({
   onBackToExtras,
   onClose,
 }: VideoModalProps) {
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const rawUrl = video?.url.trim() ?? '';
+  const embedUrl = rawUrl ? getYouTubeEmbedUrl(rawUrl) : null;
+  const localSrc = !embedUrl && rawUrl && isSafeLocalOrHttpsVideo(rawUrl) ? rawUrl : null;
+
   useEffect(() => {
     if (!video) return;
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        onClose();
+        onBackToExtras();
       }
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [video, onClose]);
+  }, [video, onBackToExtras]);
 
-  if (!video || !video.url.trim()) {
+  // Listen for YouTube player "ended" state (playerState === 0) to return automatically to the Videos list
+  useEffect(() => {
+    if (!video || !embedUrl) return;
+
+    const onMessage = (event: MessageEvent) => {
+      if (
+        event.origin !== 'https://www.youtube-nocookie.com' &&
+        event.origin !== 'https://www.youtube.com'
+      ) {
+        return;
+      }
+      if (typeof event.data !== 'string') return;
+      try {
+        const payload = JSON.parse(event.data) as {
+          event?: string;
+          info?: number | { playerState?: number };
+        };
+        const state =
+          payload.event === 'onStateChange' && typeof payload.info === 'number'
+            ? payload.info
+            : payload.event === 'infoDelivery' &&
+                payload.info &&
+                typeof payload.info === 'object'
+              ? payload.info.playerState
+              : null;
+
+        if (state === 0) {
+          onBackToExtras();
+        }
+      } catch {
+        // Ignore non-JSON messages
+      }
+    };
+
+    window.addEventListener('message', onMessage);
+    return () => window.removeEventListener('message', onMessage);
+  }, [video, embedUrl, onBackToExtras]);
+
+  if (!video || !rawUrl) {
     return null;
   }
 
   const title = video.title[currentLang];
-  const embedUrl = getYouTubeEmbedUrl(video.url.trim());
-  const localSrc = !embedUrl && isSafeLocalOrHttpsVideo(video.url.trim()) ? video.url.trim() : null;
+
+  const handleYouTubeFrameLoad = () => {
+    const win = iframeRef.current?.contentWindow;
+    if (!win) return;
+    try {
+      win.postMessage(JSON.stringify({ event: 'listening' }), 'https://www.youtube-nocookie.com');
+    } catch {
+      // Ignore cross-origin postMessage restrictions
+    }
+  };
 
   return (
     <div
@@ -85,7 +140,7 @@ export function VideoModal({
       role="dialog"
       aria-modal="true"
       aria-label={title}
-      onClick={onClose}
+      onClick={onBackToExtras}
     >
       <div className="video-modal-card" onClick={(e) => e.stopPropagation()}>
         <div className="video-modal-top">
@@ -112,9 +167,11 @@ export function VideoModal({
         <div className="video-modal-stage">
           {embedUrl ? (
             <iframe
+              ref={iframeRef}
               src={embedUrl}
               title={title}
               className="video-modal-frame"
+              onLoad={handleYouTubeFrameLoad}
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
               referrerPolicy="strict-origin-when-cross-origin"
@@ -127,6 +184,7 @@ export function VideoModal({
               autoPlay
               playsInline
               preload="metadata"
+              onEnded={onBackToExtras}
             />
           ) : null}
         </div>

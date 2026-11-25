@@ -7,6 +7,12 @@ export interface LibraryItem {
   kind: LibraryItemKind;
   /** External URL (e.g. YouTube link) or local file in /public/pdfs/ (e.g. "/pdfs/book-a.pdf"). Leave empty until ready. */
   url: string;
+  /** Optional custom thumbnail image path (e.g. "/photos/thumb-1.jpg"). YouTube URLs automatically get a 16:9 thumbnail if omitted. */
+  thumbnail?: string;
+  /** Optional CSS object-position for custom thumbnail framing (e.g. "center 25%"). */
+  thumbnailPosition?: string;
+  /** Optional list of languages where this item is displayed (if omitted, shown in all languages). */
+  languages?: Language[];
   /** Compact editorial tag shown right above the title (e.g. "Book A · PDF"). */
   tag?: Record<Language, string>;
   title: Record<Language, string>;
@@ -103,21 +109,32 @@ export const LIBRARY_ITEMS: LibraryItem[] = [
   {
     id: 'psp-short-video',
     kind: 'video',
-    url: '',
-    tag: {
-      en: 'Short Film',
-      el: 'Σύντομο Βίντεο',
-      ru: 'Короткое видео',
-    },
+    url: '/videos/1%20psp-small%20intro%20NEW%20480x272.mp4',
     title: {
-      en: 'PSP — Wordless Visual Introduction',
-      el: 'PSP — Οπτική Εισαγωγή χωρίς Λόγια',
-      ru: 'PSP — Визуальное вступление без слов',
+      en: 'PSP — Visual Prelude',
+      el: 'PSP — Μια πρώτη ματιά',
+      ru: 'PSP — Первый взгляд',
     },
     subtitle: {
-      en: 'A brief atmospheric glimpse of PSP in motion.',
-      el: 'Μια σύντομη ατμοσφαιρική ματιά στην PSP σε κίνηση.',
-      ru: 'Краткий атмосферный взгляд на PSP в движении.',
+      en: 'Short symbolic video with music; no words.',
+      el: 'Σύντομο συμβολικό βίντεο με μουσική, χωρίς λόγια.',
+      ru: 'Картинка и музыка',
+    },
+  },
+  {
+    id: 'existential-intrapersonal-loneliness',
+    kind: 'video',
+    url: 'https://youtu.be/OUG8VUZMZAE',
+    languages: ['en', 'ru'],
+    title: {
+      en: 'Existential & Intrapersonal Loneliness',
+      el: 'Existential & Intrapersonal Loneliness',
+      ru: 'Экзистенциальное и внутриличностное одиночество',
+    },
+    subtitle: {
+      en: 'Opening reflection from a seminar on loneliness through PSP.',
+      el: 'Opening reflection from a seminar on loneliness through PSP.',
+      ru: 'Вступление к семинару об одиночестве через PSP (на английском языке).',
     },
   },
 ];
